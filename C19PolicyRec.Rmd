@@ -1,0 +1,377 @@
+---
+title: Covid19 Policy Stringency and Outdoor Recreation The Case of Resident Marine Sportfishing in the United States
+author:
+  - name: David W. Carter
+    email: david.w.carter@noaa.gov
+    affiliation: NOAA Fisheries Southeast Fisheries Science Center
+    footnote: Corresponding Author
+  - name: Alexander Gordan
+    email: alexander.gordan@noaa.gov
+    affiliation: ECS
+  - name: Sabrina Lovell
+    email: sabrina.lovell@noaa.gov
+    affiliation: NOAA Fisheries Office of Science and Technology
+address:
+  - code: NOAA Fisheries Southeast Fisheries Science Center
+    address: 75 Virginia Beach Drive, Miami, FL, 33149
+  - code: ECS
+    address: Department 2, Street, City, State, Zip
+  - code: NOAA Fisheries Office of Science and Technology
+    address: Department 2, Street, City, State, Zip    
+abstract: |
+  Governments responded to the Covid-19 pandemic with different policies to curtail the spread of the virus. We show how sportfishing levels are related to the stringency of Covid-19 policies. Specifically, the number of sportfishing trips increases at a decreasing rate as Covid-19 policies become more stringent. 
+  
+author_summary: |
+  He does this and that.
+  
+bibliography: C19PolicyRec.bib
+output: rticles::plos_article
+csl: plos.csl
+editor_options: 
+  chunk_output_type: console
+---
+
+_Text based on plos sample manuscript, see <https://journals.plos.org/ploscompbiol/s/latex>_
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+library(feather)
+library(survey)
+options(survey.lonely.psu="adjust",multicore=TRUE)
+library(tidycensus)
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(texreg)
+library(cdlTools)
+library(kableExtra)
+library(ciTools)
+
+```
+
+```{r,echo=FALSE,warning=FALSE,eval=FALSE}
+
+#RUN ONCE TO CREATE DATASET: EVAL SET TO FALSE AFTER
+
+#census_api_key("dc352be83efcd7e4189b8a5d1be652187e50c66d",install=TRUE)
+
+#Load Atlantic and Gulf of Mexico MRIP data
+trips=read_feather("trips1720.feather")
+#Remove observations:
+#without weights
+#without months
+#headboats
+#non-residents 
+#aggregate(I(ST_RES==ST)~MODE_FX+YEAR,FUN=mean,data=trips)
+trips=subset(trips,wp_int>0 & month!=99 & MODE_FX!=4 & ST==ST_RES)
+
+#Create counting variable for aggregation purposes
+trips$one=1
+
+#Trips survey design object
+tripss=svydesign(id=~psu_id, strata=~strat_id,weights=~wp_int, data=trips)
+
+#Estimated trips by year, month, mode, and state
+tripsT=svyby(~one,~YEAR+month+MODE_FX+ST,FUN=svytotal,design=tripss,drop.empty.groups=FALSE)
+
+#Setting missing trip estimates to zero and preparing variables for merge
+tripsT$one[is.na(tripsT$one)]=0
+tripsT$MONTH=as.numeric(tripsT$month)
+tripsT$year=as.numeric(as.character(tripsT$YEAR))
+tripsT$fips=as.numeric(as.character(tripsT$ST))
+
+#Proportional standard error for each estimate
+tripsT$pse=with(tripsT,ifelse(one>0,se/one,NA))
+
+
+#Function to retrieve annual state population estimates from ACS
+acsY = function(y) {
+  d=get_acs(geography = "state", 
+            variables = "B01001_001", 
+            year = y,
+            survey = "acs1")
+  d$year=y
+  return(d)
+}
+
+#Retrieve state population estimates for 2017-2019
+pop=do.call(rbind,lapply(2017:2019,FUN=function(x) acsY(x)))
+
+#Get 2020 Census state population estimates and merge to the prior years
+pop20 <- get_decennial(geography = "state", 
+                       variables = "P1_001N", 
+                       year = 2020)
+pop20$year=2020
+pop20=plyr::rename(pop20,replace=c("value" = "estimate"))
+pop=plyr::rbind.fill(pop,pop20)
+pop$fips=as.numeric(pop$GEOID)
+
+#Merge the population estimates to the trip dataset year and state
+tripsT2=merge(tripsT,pop,by.x=c("year","fips"),by.y=c("year","fips"),all.x=TRUE)
+
+
+#Download daily stringency index for US states and reshape into a long dataset
+#https://github.com/OxCGRT/USA-covid-policy
+stringentw= openxlsx::read.xlsx(xlsxFile = "OxCGRTUS_timeseries_all.xlsx", sheet = 1)
+stringent <- reshape::melt(stringentw, id=names(stringentw[1:5]))
+
+#Create month, year, and state fips variables that are compatible withe the trip dataset
+stringent$month=match(substr(stringent$variable,3,5),month.abb)
+stringent$year=as.numeric(substr(stringent$variable,6,9))
+stringent$fips=fips(stringent$region_name)
+
+#Create an aggregated stringency dataset by summing the index by state, year, and month
+stringentm=aggregate(value~year+month+fips,FUN=sum,data=stringent,na.rm=TRUE)
+
+
+#Merge stringency index data with trip data by year, month, and state
+tripsT3=merge(tripsT2,stringentm,by.x=c("year","MONTH","fips"),by.y=c("year","month","fips"),all.x=TRUE)
+tripsT3$value[is.na(tripsT3$value)]=0
+
+
+#Cleaning up and naming variables in dataset
+tripsT3=subset(tripsT3,select=-c(YEAR,MONTH,variable,moe,fips,ST))
+names(tripsT3)=c("Year","Month","Mode","Trips","Trips_se","Trips_pse","FIPS","State","Population","Stringency")
+
+#Trips per capita
+tripsT3$TPC=tripsT3$Trips/tripsT3$Population
+
+
+#Save the final dataset
+saveRDS(tripsT3,"tripsT3.rds")
+
+```
+
+
+
+
+# Introduction
+
+* Intro to C-19 and the anecdotal evidence related to C-19 and recreation
+* Literature review
+* Research question: How do outdoor recreation levels change as governments institute policies to protect public health during a pandemic?
+* Approach: variation in state stringency policies to identify the effect of C-19 on sportfishing levels
+
+# Methods
+
+
+## Data
+
+```{r loadData,echo=FALSE,warning=FALSE}
+#Load the final dataset (still need to clean this dataset up)
+tripsT3=readRDS("tripsT3.rds")
+
+
+```
+
+
+We assemble monthly observations from 2017-2020 for three different modes of fishing: private boats, charter boats, and shore. With `r length(unique(tripsT3$Year))` years and `r length(unique(tripsT3$Month))` months in each year, the data set for each mode has `r length(tripsT3$Trips[tripsT3$Mode==7])` observations. 
+
+* MRIP monthly estimates (via program) by mode (private, charter, shore) for each state bordering the Atlantic and Gulf of Mexico
+  + refer to MRIP website with template programs
+  + potential issue with PSEs
+  + Only residents (show percentage of res. vs nonres.)
+
+* Annual population estimates for each state bordering the Atlantic and Gulf of Mexico
+  + 2017-2019: ACS
+  + 2020 Census
+  
+* Monthly C-19 Stringency index for each state bordering the Atlantic and Gulf of Mexico
+  + daily estimates summed to each month
+  + higher numbers equate with more stringent policies
+
+```{r sumStat,echo=FALSE,warning=FALSE,results='asis'}
+
+#Average trips per capita by state and mode for the years prior to 2020
+tpclt20=aggregate(TPC~State+Mode,FUN=mean,data=tripsT3,subset=Year<2020)
+names(tpclt20)[3]="TPClt20"
+
+#Average trips, stringency, and trips per capita by state and mode for 2020
+mbms=aggregate(cbind(Trips,Stringency,TPC)~State+Mode,FUN=mean,data=tripsT3,subset=Year==2020)
+
+#Combine the means for 2020 and years prior by state and mode
+mbms=merge(mbms,tpclt20,by=c("State","Mode"))
+
+#Ratio of the average trips per capita in 2020 to the average trips per capita in prior years by state and mode
+mbms$TPCdTPClt20=mbms$TPC/mbms$TPClt20
+
+mbms=mbms[order(mbms$Mode,mbms$State),]
+
+kbl(mbms, "latex",digits=c(rep(0,4),rep(3,3)),row.names = FALSE,label = "sumSt",
+      col.names = c(names(mbms)[1:4],"Trips/Pop (2020)","Trips/Pop (before 2020)","Trips/Pop (ratio)"),
+    caption = "Mean Estimates by Mode and State", booktabs = T)  %>%
+kable_styling(latex_options = c("striped", "scale_down")) %>%
+  column_spec(5:7, width = "2cm")
+
+
+```
+
+
+
+
+```{r pTrips,echo=FALSE,warning=FALSE,fig.cap="2020 Monthly Marine Sportfishing Trips per Capita by State",fig.height=6,fig.width=5,fig.align='center'}
+tripsT3 %>%
+  filter(Mode == 7 & Year > 2019) %>%
+  ggplot( aes(x=Month,y=TPC, group=State, color=State)) +
+  geom_line() + 
+  ylab("Trips (millons)") +
+  ggtitle("Private Boats")
+
+tripsT3 %>%
+  filter(Mode == 5 & Year > 2019) %>%
+  ggplot( aes(x=Month,y=TPC, group=State, color=State)) +
+  geom_line() + 
+  ylab("Trips (millons)") +
+  ggtitle("Charter Boats")
+
+tripsT3 %>%
+  filter(Mode == 3 & Year > 2019) %>%
+  ggplot( aes(x=Month,y=TPC, group=State, color=State)) +
+  geom_line() + 
+  ylab("Trips (millons)") +
+  ggtitle("Shore")
+
+```
+
+
+```{r pString,echo=FALSE,warning=FALSE,fig.cap="Monthly 2020 stringency Index by State",fig.height=6,fig.width=5,fig.align='center'}
+tripsT3 %>% 
+  filter(Year > 2019) %>%
+  ggplot( aes(x=Month,y=Stringency, group=State, color=State)) +
+  geom_line() + 
+  ylab("stringency")
+
+```
+
+```{r tripsVstring,echo=FALSE,warning=FALSE,fig.cap="Average Trips per Capita versus Covid-19 Policy Stringency",fig.height=6,fig.width=5,fig.align='center'}
+
+
+with(subset(mbms,Mode==7),
+     plot(TPCdTPClt20 ~Stringency,pch=NA,main="Private Boats",xlim=c(1000,2000),
+          ylab="Trips per Capita Ratio",xlab="Covid-19 Policy Stringency"))
+with(subset(mbms,Mode==7 ),
+     text(TPCdTPClt20 ~Stringency,font=2,cex=0.75,
+          labels=State[Mode==7 ]))
+
+with(subset(mbms,Mode==5 ),
+     plot(TPCdTPClt20 ~Stringency,pch=NA,main="Charter Boats",xlim=c(1000,2000),
+          ylab="Trips per Capita Ratio",xlab="Covid-19 Policy Stringency"))
+with(subset(mbms,Mode==5 ),
+     text(TPCdTPClt20 ~Stringency,font=2,cex=0.75,
+          labels=State[Mode==5 ]))
+
+with(subset(mbms,Mode==3 ),
+     plot(TPCdTPClt20 ~Stringency,pch=NA,main="Shore",xlim=c(1000,2000),
+          ylab="Trips per Capita Ratio",xlab="Covid-19 Policy Stringency"))
+with(subset(mbms,Mode==3 ),
+     text(TPCdTPClt20 ~Stringency,font=2,cex=0.75,
+          labels=State[Mode==3 ]))
+
+
+```
+
+
+
+## Modeling Approach
+
+Quasi-poisson regression estimated with mean equal to $exp(pop)*exp(xb)$ and variance equal to $scale*mean$.
+
+
+# Results
+
+```{r pfe,echo=FALSE,warning=FALSE}
+
+#Fixed effect poisson regressions of trips on stringency index with a population offset
+#Modeling trips per capita
+mf=formula(Trips ~ State + Month + I(Stringency/100) + I((Stringency/100)^2) + offset(log(Population)))
+pm=glm(mf,data=tripsT3,family = quasipoisson,subset=Mode==7 )
+cm=glm(mf,data=tripsT3,family = quasipoisson,subset=Mode==5 )
+sm=glm(mf,data=tripsT3,family = quasipoisson,subset=Mode==3 )
+
+
+```
+
+
+```{r regTbl,echo=FALSE,warning=FALSE,results='asis'}
+
+staten=gsub("State","",names(coef(pm)))[2:16]
+
+texreg(list(pm,cm,sm),custom.model.names = c("Private","Charter","Shore"),single.row = TRUE,digits=3,label="regResults",
+       caption = "Quasi-Poisson Fixed Effect Regression of Trips on Covid-19 Stringency by Mode",
+       custom.coef.names = c("Intercept",staten,month.name[-1],
+                             "Stringency/100","(Stringency/100)^2"),
+       include.aic=FALSE,include.bic=FALSE,include.loglik=FALSE,caption.above = TRUE,
+       custom.note = "%stars. The base state is Alabama and the base Month is January.",
+       custom.gof.rows = list("Scale" = c(summary(pm)$dispersion,summary(cm)$dispersion,summary(sm)$dispersion)))
+```
+
+```{r tripStringRel,echo=FALSE,warning=FALSE,fig.cap="Predicted Trips as a Function of the Stringency Index",fig.height=8,fig.width=4}
+
+#Dataset to predict trips as a function of stringency
+#holding everything else constant.
+#Using June in Florida: zero stringency should correspond with
+#the mean historical trips in Florida during June
+nd=data.frame(State="Florida",Month="06",
+              Population=with(tripsT3,mean(Population[State=="Florida" & Month=="06"])),
+              Stringency=seq(0,3000,by=50))
+
+#Predicted trips as a function of stringency, including confidence intervals
+pd=add_ci(nd,pm)
+cd=add_ci(nd,cm)
+sd=add_ci(nd,sm)
+
+#Plot predicted trips and confidence intervals
+par(mfrow=c(3,1))
+
+plot(y=pd$pred/1000000,x=pd$Stringency,type="l",ylim=c(2,5),
+     main="Private Boats",
+     xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
+     ylab="Millions of Fishing Trips (Scaled to June in FL)")
+lines(y=pd$LCB0.025/1000000,x=pd$Stringency,lty=2)
+lines(y=pd$UCB0.975/1000000,x=pd$Stringency,lty=2)
+
+plot(y=cd$pred/1000000,x=cd$Stringency,type="l",ylim=c(.04,.09),
+     main="Charter Boats",
+     xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
+     ylab="Millions of Fishing Trips (Scaled to June in FL)")
+lines(y=cd$LCB0.025/1000000,x=pd$Stringency,lty=2)
+lines(y=cd$UCB0.975/1000000,x=pd$Stringency,lty=2)
+
+plot(y=sd$pred/1000000,x=sd$Stringency,type="l",ylim=c(3,7),
+     main="Shore",
+     xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
+     ylab="Millions of Fishing Trips (Scaled to June in FL)")
+lines(y=sd$LCB0.025/1000000,x=pd$Stringency,lty=2)
+lines(y=sd$UCB0.975/1000000,x=pd$Stringency,lty=2)
+
+par(mfrow=c(1,1))
+
+#Use this to reverse the x-axis: xlim=c(3000,0)
+
+#Don't think that we need robust standard error with the
+#Quasi-poisson, but here is how you would calculate them
+#library(sandwich)
+#library(lmtest)
+#coeftest(pm, vcov = vcovHC(pm, type="HC4"))
+
+
+#Bootstrapped prediction CI to verify (takes long to run as currently coded)
+# library(boot)
+# 
+# bf=function(d,i){
+#   pm=glm(mf,data=d[i,],family = quasipoisson )
+#   pd=predict(pm,newdata = nd,type="response")/1000000
+#   return(pd)
+# }
+# 
+# bcp=boot(subset(tripsT3,Mode==7),bf,R=1000)
+# zz=sapply(1:61,FUN=function(i) boot.ci(boot.out = bcp, type = c("bca"),index=i)$bca)
+# 
+# plot(pd,type="l",ylim=c(2,6))
+# lines(zz[4,],lty=2)
+# lines(zz[5,],lty=2)
+
+```
+
+
+
+# References {#references .unnumbered}

@@ -1,0 +1,168 @@
+% Encoding: UTF-8
+﻿@article{midway2021covid,
+  title={COVID-19 influences on US recreational angler behavior},
+  author={Midway, Stephen R and Lynch, Abigail J and Peoples, Brandon K and Dance, Michael and Caffey, Rex},
+  journal={PloS one},
+  volume={16},
+  number={8},
+  pages={e0254652},
+  year={2021},
+  publisher={Public Library of Science San Francisco, CA USA}
+}
+
+@article{spennemann2021impact,
+  title={The impact of COVID-19 on the Australian outdoor recreation industry from the perspective of practitioners},
+  author={Spennemann, Dirk HR and Whitsed, Rachel},
+  journal={Journal of Outdoor Recreation and Tourism},
+  pages={100445},
+  year={2021},
+  publisher={Elsevier}
+}
+
+@article{fang2021immediate,
+  title={The immediate and subsequent effects of public health interventions for COVID-19 on the leisure and recreation industry},
+  author={Fang, Yan and Zhu, Lijun and Jiang, Yiyi and Wu, Bihu},
+  journal={Tourism management},
+  volume={87},
+  pages={104393},
+  year={2021},
+  publisher={Elsevier}
+}
+
+@article{landry2021has,
+  title={How Has the COVID-19 Pandemic Affected Outdoor Recreation in the US? A Revealed Preference Approach},
+  author={Landry, Craig E and Bergstrom, John and Salazar, John and Turner, Dylan},
+  journal={Applied Economic Perspectives and Policy},
+  volume={43},
+  number={1},
+  pages={443--457},
+  year={2021},
+  publisher={Wiley Online Library}
+}
+
+@article{deforche2021behavioral,
+  title={Behavioral changes before lockdown and decreased retail and recreation mobility during lockdown contributed most to controlling COVID-19 in Western countries},
+  author={Deforche, Koen and Vercauteren, Jurgen and M{\"u}ller, Viktor and Vandamme, Anne-Mieke},
+  journal={BMC public health},
+  volume={21},
+  number={1},
+  pages={1--11},
+  year={2021},
+  publisher={BioMed Central}
+}
+
+@article{humagain2021exploring,
+  title={Exploring tourists’ motivations, constraints, and negotiations regarding outdoor recreation trips during COVID-19 through a focus group study},
+  author={Humagain, Prasanna and Singleton, Patrick A},
+  journal={Journal of Outdoor Recreation and Tourism},
+  pages={100447},
+  year={2021},
+  publisher={Elsevier}
+}
+
+@article{rice2020changes,
+  title={Changes in recreational behaviors of outdoor enthusiasts during the COVID-19 pandemic: analysis across urban and rural communities},
+  author={Rice, William L and Mateer, Timothy J and Reigner, Nathan and Newman, Peter and Lawhon, Ben and Taff, B Derrick},
+  journal={Journal of Urban Ecology},
+  volume={6},
+  number={1},
+  pages={juaa020},
+  year={2020},
+  publisher={Oxford University Press}
+}
+
+@misc{o2020impact,
+  title={The Impact of COVID-19 on Outdoor Recreation Participation in Canada},
+  author={O’Connell, Timothy S and Howard, Ryan A and Hutson, Garrett},
+  year={2020}
+}
+
+@article{derks2020covid,
+  title={COVID-19-induced visitor boom reveals the importance of forests as critical infrastructure},
+  author={Derks, Jakob and Giessen, Lukas and Winkel, Georg},
+  journal={Forest Policy and Economics},
+  volume={118},
+  pages={102253},
+  year={2020},
+  publisher={Elsevier}
+}
+@Article{VerHoef2007,
+  author    = {Ver Hoef, Jay M and Boveng, Peter L},
+  title     = {Quasi-Poisson vs. negative binomial regression: how should we model overdispersed count data?},
+  journal   = {Ecology},
+  year      = {2007},
+  volume    = {88},
+  number    = {11},
+  pages     = {2766--2772},
+  publisher = {Wiley Online Library},
+}
+
+@Article{Rice2021,
+  author    = {Rice, William L and Taff, B Derrick and Lawhon, Ben and Newman, Peter},
+  title     = {The New, COVID-Driven Outdoor Recreationists in the US: Who They Are, Who They Aren’t, and Who Will Stay Involved},
+  year      = {2021},
+  groups    = {[david.w.carter:]},
+  publisher = {SocArXiv},
+}
+
+@Article{hellerstein1991using,
+  author    = {Hellerstein, Daniel M},
+  journal   = {American journal of agricultural economics},
+  title     = {Using count data models in travel cost analysis with aggregate data},
+  year      = {1991},
+  number    = {3},
+  pages     = {860--866},
+  volume    = {73},
+  groups    = {david.w.carter:6},
+  publisher = {Wiley Online Library},
+}
+
+@Misc{Hornstein2012,
+  author    = {Abigail S. Hornstein and William H. Greene},
+  title     = {Usage of an estimated coefficient as a dependent variable},
+  year      = {2012},
+  address   = {Amsterdam [u.a.]},
+  journal   = {Economics letters},
+  pages     = {316-318},
+  ppn_gvk   = {731842995},
+  publisher = {Elsevier},
+  volume    = {3},
+}
+
+@Article{Lewis2005,
+  author = {Jeffrey B. Lewis and Drew A. Linzer},
+  title  = {Estimating Regression Models in Which the Dependent Variable Is Based on Estimates},
+  year   = {2005},
+  issn   = {1047-1987},
+  pages  = {345-364},
+  volume = {13},
+  doi    = {10.1093/pan/mpi026},
+}
+
+@Article{Deb2020,
+  author = {Pragyan Deb and Davide Furceri and Jonathan Ostry and Nour Tawk},
+  title  = {The Economic Effects of COVID-19 Containment Measures},
+  year   = {2020},
+  issn   = {1018-5941},
+  volume = {20},
+  doi    = {10.5089/9781513550251.001},
+}
+
+@Article{petherick2020variation,
+  author  = {Petherick, Anna and Kira, Beatriz and Hale, T and Phillips, T and Webster, S and Cameron-Blake, E and Hallas, L and Majumdar, S and Tatlow, H},
+  journal = {Blavatnik Centre for Government Working Paper, University of Oxford},
+  title   = {Variation in government responses to COVID-19},
+  year    = {2020},
+}
+
+@Article{,
+}
+
+@Comment{jabref-meta: databaseType:bibtex;}
+
+@Comment{jabref-meta: grouping:
+0 AllEntriesGroup:;
+1 StaticGroup:Markings\;2\;1\;\;\;\;;
+2 StaticGroup:[david.w.carter:]\;2\;1\;\;\;\;;
+2 StaticGroup:david.w.carter:6\;2\;1\;\;\;\;;
+}
