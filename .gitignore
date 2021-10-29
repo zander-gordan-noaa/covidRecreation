@@ -43,3 +43,8 @@ vignettes/*.pdf
 
 # trackdown files
 .trackdown/
+
+# rmarkdown tex and pdf outputs
+**/*.pdf
+*.tex
+
