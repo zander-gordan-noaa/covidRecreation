@@ -82,7 +82,6 @@ tripsT$fips=as.numeric(as.character(tripsT$ST))
 #Proportional standard error for each estimate
 tripsT$pse=with(tripsT,ifelse(one>0,se/one,NA))
 
-
 #Function to retrieve annual state population estimates from ACS
 acsY = function(y) {
   d=get_acs(geography = "state", 
@@ -108,7 +107,6 @@ pop$fips=as.numeric(pop$GEOID)
 #Merge the population estimates to the trip dataset year and state
 tripsT2=merge(tripsT,pop,by.x=c("year","fips"),by.y=c("year","fips"),all.x=TRUE)
 
-
 #Download daily stringency index for US states and reshape into a long dataset
 #https://github.com/OxCGRT/USA-covid-policy
 stringentw= openxlsx::read.xlsx(xlsxFile = "OxCGRTUS_timeseries_all.xlsx", sheet = 1)
@@ -122,11 +120,9 @@ stringent$fips=fips(stringent$region_name)
 #Create an aggregated stringency dataset by summing the index by state, year, and month
 stringentm=aggregate(value~year+month+fips,FUN=sum,data=stringent,na.rm=TRUE)
 
-
 #Merge stringency index data with trip data by year, month, and state
 tripsT3=merge(tripsT2,stringentm,by.x=c("year","MONTH","fips"),by.y=c("year","month","fips"),all.x=TRUE)
 tripsT3$value[is.na(tripsT3$value)]=0
-
 
 #Cleaning up and naming variables in dataset
 tripsT3=subset(tripsT3,select=-c(YEAR,MONTH,variable,moe,fips,ST))
@@ -135,9 +131,14 @@ names(tripsT3)=c("Year","Month","Mode","Trips","Trips_se","Trips_pse","FIPS","St
 #Trips per capita
 tripsT3$TPC=tripsT3$Trips/tripsT3$Population
 
-
 #Save the final dataset
 saveRDS(tripsT3,"tripsT3.rds")
+
+```
+
+```{r loadData,echo=FALSE,warning=FALSE}
+#Load the final dataset (still need to clean this dataset up)
+tripsT3=readRDS("tripsT3.rds")
 
 ```
 
@@ -151,20 +152,23 @@ saveRDS(tripsT3,"tripsT3.rds")
 * Research question: How do outdoor recreation levels change as governments institute policies to protect public health during a pandemic?
 * Approach: variation in state stringency policies to identify the effect of C-19 on sportfishing levels
 
-# Methods
+Landry et al (2021) provide a useful summary of potential causal pathways through which COVID-19 may affect ourdoor recreation:
+1. blah
+2. Blah blah
+3. Blah blah blah
 
+To which we may add:
+4. Etc
+5. Etc etc
+
+
+
+
+# Methods
 
 ## Data
 
-```{r loadData,echo=FALSE,warning=FALSE}
-#Load the final dataset (still need to clean this dataset up)
-tripsT3=readRDS("tripsT3.rds")
-
-
-```
-
-
-We assemble monthly observations from 2017-2020 for three different modes of fishing: private boats, charter boats, and shore. With `r length(unique(tripsT3$Year))` years and `r length(unique(tripsT3$Month))` months in each year, the data set for each mode has `r length(tripsT3$Trips[tripsT3$Mode==7])` observations. 
+We assemble monthly observations from 2017-2020 for three different modes of fishing: private boats, charter boats, and shore. With `r length(unique(tripsT3$Year))` years, `r length(unique(tripsT3$Month))` months in each year and `r length(unique(tripsT3$State))` states, the data set for each mode has `r length(tripsT3$Trips[tripsT3$Mode==7])` observations. 
 
 * MRIP monthly estimates (via program) by mode (private, charter, shore) for each state bordering the Atlantic and Gulf of Mexico
   + refer to MRIP website with template programs
@@ -176,7 +180,7 @@ We assemble monthly observations from 2017-2020 for three different modes of fis
   + 2020 Census
   
 * Monthly C-19 Stringency index for each state bordering the Atlantic and Gulf of Mexico
-  + daily estimates summed to each month
+  + daily estimates summed to each month[a]
   + higher numbers equate with more stringent policies
 
 ```{r sumStat,echo=FALSE,warning=FALSE,results='asis'}
@@ -201,7 +205,6 @@ kbl(mbms, "latex",digits=c(rep(0,4),rep(3,3)),row.names = FALSE,label = "sumSt",
     caption = "Mean Estimates by Mode and State", booktabs = T)  %>%
 kable_styling(latex_options = c("striped", "scale_down")) %>%
   column_spec(5:7, width = "2cm")
-
 
 ```
 
@@ -232,7 +235,6 @@ tripsT3 %>%
 
 ```
 
-
 ```{r pString,echo=FALSE,warning=FALSE,fig.cap="Monthly 2020 stringency Index by State",fig.height=6,fig.width=5,fig.align='center'}
 tripsT3 %>% 
   filter(Year > 2019) %>%
@@ -243,7 +245,6 @@ tripsT3 %>%
 ```
 
 ```{r tripsVstring,echo=FALSE,warning=FALSE,fig.cap="Average Trips per Capita versus Covid-19 Policy Stringency",fig.height=6,fig.width=5,fig.align='center'}
-
 
 with(subset(mbms,Mode==7),
      plot(TPCdTPClt20 ~Stringency,pch=NA,main="Private Boats",xlim=c(1000,2000),
@@ -266,7 +267,6 @@ with(subset(mbms,Mode==3 ),
      text(TPCdTPClt20 ~Stringency,font=2,cex=0.75,
           labels=State[Mode==3 ]))
 
-
 ```
 
 
@@ -275,8 +275,8 @@ with(subset(mbms,Mode==3 ),
 
 Quasi-poisson regression estimated with mean equal to $exp(pop)*exp(xb)$ and variance equal to $scale*mean$.
 
-
 # Results
+Our results represent a composite effect of the actual local COVID policies, as well as localized attitudes, risk tolerances, and beliefs about COVID-19 which are correlated with COVID stringency. In particular, we see the inverse-U relationship we find to be the outcome of 2 countervailing pathways (laid out in the background section), (1) stringency reduces available substitutes of indoor or high-density outdoor activities, increasing the attractiveness of fishing, which is the dominant force on the low-stringency side of the curve, and (2) COVID risk makes even a relatively distanced activity, such as fishing, less appealing compared to entirely in-home activities such as cooking, backyard games, video games, etc., which is the dominating force on the high-stringency side of the curve.
 
 ```{r pfe,echo=FALSE,warning=FALSE}
 
@@ -287,9 +287,7 @@ pm=glm(mf,data=tripsT3,family = quasipoisson,subset=Mode==7 )
 cm=glm(mf,data=tripsT3,family = quasipoisson,subset=Mode==5 )
 sm=glm(mf,data=tripsT3,family = quasipoisson,subset=Mode==3 )
 
-
 ```
-
 
 ```{r regTbl,echo=FALSE,warning=FALSE,results='asis'}
 
@@ -353,7 +351,6 @@ par(mfrow=c(1,1))
 #library(lmtest)
 #coeftest(pm, vcov = vcovHC(pm, type="HC4"))
 
-
 #Bootstrapped prediction CI to verify (takes long to run as currently coded)
 # library(boot)
 # 
@@ -375,3 +372,5 @@ par(mfrow=c(1,1))
 
 
 # References {#references .unnumbered}
+
+[a]why not average? Different months have different numbers of days
