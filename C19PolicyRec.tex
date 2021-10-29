@@ -251,6 +251,8 @@ He does this and that.
 \emph{Text based on plos sample manuscript, see
 \url{https://journals.plos.org/ploscompbiol/s/latex}}
 
+blah blah
+
 \hypertarget{introduction}{%
 \section{Introduction}\label{introduction}}
 
@@ -270,6 +272,12 @@ He does this and that.
   effect of C-19 on sportfishing levels
 \end{itemize}
 
+Landry et al (2021) provide a useful summary of potential causal
+pathways through which COVID-19 may affect ourdoor recreation: 1. blah
+2. Blah blah 3. Blah blah blah
+
+To which we may add: 4. Etc 5. Etc etc
+
 \hypertarget{methods}{%
 \section{Methods}\label{methods}}
 
@@ -277,8 +285,8 @@ He does this and that.
 \subsection{Data}\label{data}}
 
 We assemble monthly observations from 2017-2020 for three different
-modes of fishing: private boats, charter boats, and shore. With 4 years
-and 12 months in each year, the data set for each mode has 768
+modes of fishing: private boats, charter boats, and shore. With 4 years,
+12 months in each year and 16 states, the data set for each mode has 768
 observations.
 
 \begin{itemize}
@@ -314,7 +322,7 @@ observations.
   \begin{itemize}
   \tightlist
   \item
-    daily estimates summed to each month
+    daily estimates summed to each month{[}a{]}
   \item
     higher numbers equate with more stringent policies
   \end{itemize}
@@ -458,6 +466,19 @@ Quasi-poisson regression estimated with mean equal to
 \hypertarget{results}{%
 \section{Results}\label{results}}
 
+Our results represent a composite effect of the actual local COVID
+policies, as well as localized attitudes, risk tolerances, and beliefs
+about COVID-19 which are correlated with COVID stringency. In
+particular, we see the inverse-U relationship we find to be the outcome
+of 2 countervailing pathways (laid out in the background section), (1)
+stringency reduces available substitutes of indoor or high-density
+outdoor activities, increasing the attractiveness of fishing, which is
+the dominant force on the low-stringency side of the curve, and (2)
+COVID risk makes even a relatively distanced activity, such as fishing,
+less appealing compared to entirely in-home activities such as cooking,
+backyard games, video games, etc., which is the dominating force on the
+high-stringency side of the curve.
+
 \begin{table}
 \caption{Quasi-Poisson Fixed Effect Regression of Trips on Covid-19 Stringency by Mode}
 \begin{center}
@@ -514,6 +535,8 @@ Num. obs.            & $768$                     & $768$                     & $
 \hypertarget{references}{%
 \section*{References}\label{references}}
 \addcontentsline{toc}{section}{References}
+
+{[}a{]}why not average? Different months have different numbers of days
 
 \nolinenumbers
 
