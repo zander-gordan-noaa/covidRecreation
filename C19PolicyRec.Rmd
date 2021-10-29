@@ -104,9 +104,6 @@ pop20=plyr::rename(pop20,replace=c("value" = "estimate"))
 pop=plyr::rbind.fill(pop,pop20)
 pop$fips=as.numeric(pop$GEOID)
 
-#Merge the population estimates to the trip dataset year and state
-tripsT2=merge(tripsT,pop,by.x=c("year","fips"),by.y=c("year","fips"),all.x=TRUE)
-
 #Download daily stringency index for US states and reshape into a long dataset
 #https://github.com/OxCGRT/USA-covid-policy
 stringentw= openxlsx::read.xlsx(xlsxFile = "OxCGRTUS_timeseries_all.xlsx", sheet = 1)
