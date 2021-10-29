@@ -142,9 +142,6 @@ tripsT3=readRDS("tripsT3.rds")
 
 ```
 
-
-blah blah
-
 # Introduction
 
 * Intro to C-19 and the anecdotal evidence related to C-19 and recreation
