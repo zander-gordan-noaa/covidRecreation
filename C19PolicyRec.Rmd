@@ -213,21 +213,21 @@ tripsT3 %>%
   filter(Mode == 7 & Year > 2019) %>%
   ggplot( aes(x=Month,y=TPC, group=State, color=State)) +
   geom_line() + 
-  ylab("Trips (millons)") +
+  ylab("Trips per capita") +
   ggtitle("Private Boats")
 
 tripsT3 %>%
   filter(Mode == 5 & Year > 2019) %>%
   ggplot( aes(x=Month,y=TPC, group=State, color=State)) +
   geom_line() + 
-  ylab("Trips (millons)") +
+  ylab("Trips per capita") +
   ggtitle("Charter Boats")
 
 tripsT3 %>%
   filter(Mode == 3 & Year > 2019) %>%
   ggplot( aes(x=Month,y=TPC, group=State, color=State)) +
   geom_line() + 
-  ylab("Trips (millons)") +
+  ylab("Trips per capita") +
   ggtitle("Shore")
 
 ```
