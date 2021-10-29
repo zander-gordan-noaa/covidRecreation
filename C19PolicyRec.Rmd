@@ -67,20 +67,39 @@ trips=subset(trips,wp_int>0 & month!=99 & MODE_FX!=4 & ST==ST_RES)
 #Create counting variable for aggregation purposes
 trips$one=1
 
+
+#Merge in distance dataset TO DO
+
+
 #Trips survey design object
 tripss=svydesign(id=~psu_id, strata=~strat_id,weights=~wp_int, data=trips)
 
 #Estimated trips by year, month, mode, and state
 tripsT=svyby(~one,~YEAR+month+MODE_FX+ST,FUN=svytotal,design=tripss,drop.empty.groups=FALSE)
 
+#Estimated trips by year, month, mode, and state
+tripsM=svyby(~HRSF+PARTY,~YEAR+month+MODE_FX+ST,FUN=svymean,design=tripss,drop.empty.groups=FALSE)
+
+#Combining the monthly observation datasets
+tripsTM=merge(tripsT,tripsM,by=c("YEAR","month","MODE_FX","ST"))
+
 #Setting missing trip estimates to zero and preparing variables for merge
-tripsT$one[is.na(tripsT$one)]=0
-tripsT$MONTH=as.numeric(tripsT$month)
-tripsT$year=as.numeric(as.character(tripsT$YEAR))
-tripsT$fips=as.numeric(as.character(tripsT$ST))
+tripsTM$one[is.na(tripsTM$one)]=0
+tripsTM$HRSF[is.na(tripsTM$HRSF)]=0
+tripsTM$PARTY[is.na(tripsTM$PARTY)]=0
+
 
 #Proportional standard error for each estimate
-tripsT$pse=with(tripsT,ifelse(one>0,se/one,NA))
+tripsTM$Trips_pse=with(tripsTM,ifelse(one>0,se/one,NA))
+tripsTM$Hrsf_pse=with(tripsTM,ifelse(HRSF>0,se.HRSF/HRSF,NA))
+tripsTM$Party_pse=with(tripsTM,ifelse(PARTY>0,se.PARTY/PARTY,NA))
+
+
+tripsTM$MONTH=as.numeric(tripsTM$month)
+tripsTM$year=as.numeric(as.character(tripsTM$YEAR))
+tripsTM$fips=as.numeric(as.character(tripsTM$ST))
+
+
 
 #Function to retrieve annual state population estimates from ACS
 acsY = function(y) {
@@ -105,7 +124,7 @@ pop=plyr::rbind.fill(pop,pop20)
 pop$fips=as.numeric(pop$GEOID)
 
 #Merge the population estimates to the trip dataset year and state
-tripsT2=merge(tripsT,pop,by.x=c("year","fips"),by.y=c("year","fips"),all.x=TRUE)
+tripsTMP=merge(tripsTM,pop,by.x=c("year","fips"),by.y=c("year","fips"),all.x=TRUE)
 
 #Download daily stringency index for US states and reshape into a long dataset
 #https://github.com/OxCGRT/USA-covid-policy
@@ -121,24 +140,27 @@ stringent$fips=fips(stringent$region_name)
 stringentm=aggregate(value~year+month+fips,FUN=sum,data=stringent,na.rm=TRUE)
 
 #Merge stringency index data with trip data by year, month, and state
-tripsT3=merge(tripsT2,stringentm,by.x=c("year","MONTH","fips"),by.y=c("year","month","fips"),all.x=TRUE)
-tripsT3$value[is.na(tripsT3$value)]=0
+tripsTMPS=merge(tripsTMP,stringentm,by.x=c("year","MONTH","fips"),by.y=c("year","month","fips"),all.x=TRUE)
+tripsTMPS$value[is.na(tripsTMPS$value)]=0
 
 #Cleaning up and naming variables in dataset
-tripsT3=subset(tripsT3,select=-c(YEAR,MONTH,variable,moe,fips,ST))
-names(tripsT3)=c("Year","Month","Mode","Trips","Trips_se","Trips_pse","FIPS","State","Population","Stringency")
+tripsTMPS=subset(tripsTMPS,select=-c(YEAR,MONTH,variable,moe,fips,ST))
+names(tripsTMPS)=c("Year","Month","Mode","Trips","Trips_se","Hrsf","Party",
+                   "Hrsf_se","Party_se",
+                   "Trips_pse","Hrsf_pse","Party_pse",
+                   "FIPS","State","Population","Stringency")
 
 #Trips per capita
-tripsT3$TPC=tripsT3$Trips/tripsT3$Population
+tripsTMPS$TPC=tripsTMPS$Trips/tripsTMPS$Population
 
 #Save the final dataset
-saveRDS(tripsT3,"tripsT3.rds")
+saveRDS(tripsTMPS,"tripsTMPS.rds")
 
 ```
 
 ```{r loadData,echo=FALSE,warning=FALSE}
 #Load the final dataset (still need to clean this dataset up)
-tripsT3=readRDS("tripsT3.rds")
+tripsTMPS=readRDS("tripsTMPS.rds")
 
 ```
 
@@ -165,7 +187,7 @@ To which we may add:
 
 ## Data
 
-We assemble monthly observations from 2017-2020 for three different modes of fishing: private boats, charter boats, and shore. With `r length(unique(tripsT3$Year))` years, `r length(unique(tripsT3$Month))` months in each year and `r length(unique(tripsT3$State))` states, the data set for each mode has `r length(tripsT3$Trips[tripsT3$Mode==7])` observations. 
+We assemble monthly observations from 2017-2020 for three different modes of fishing: private boats, charter boats, and shore. With `r length(unique(tripsTMPS$Year))` years, `r length(unique(tripsTMPS$Month))` months in each year and `r length(unique(tripsTMPS$State))` states, the data set for each mode has `r length(tripsTMPS$Trips[tripsTMPS$Mode==7])` observations. 
 
 * MRIP monthly estimates (via program) by mode (private, charter, shore) for each state bordering the Atlantic and Gulf of Mexico
   + refer to MRIP website with template programs
@@ -183,11 +205,11 @@ We assemble monthly observations from 2017-2020 for three different modes of fis
 ```{r sumStat,echo=FALSE,warning=FALSE,results='asis'}
 
 #Average trips per capita by state and mode for the years prior to 2020
-tpclt20=aggregate(TPC~State+Mode,FUN=mean,data=tripsT3,subset=Year<2020)
+tpclt20=aggregate(TPC~State+Mode,FUN=mean,data=tripsTMPS,subset=Year<2020)
 names(tpclt20)[3]="TPClt20"
 
 #Average trips, stringency, and trips per capita by state and mode for 2020
-mbms=aggregate(cbind(Trips,Stringency,TPC)~State+Mode,FUN=mean,data=tripsT3,subset=Year==2020)
+mbms=aggregate(cbind(Trips,Stringency,TPC)~State+Mode,FUN=mean,data=tripsTMPS,subset=Year==2020)
 
 #Combine the means for 2020 and years prior by state and mode
 mbms=merge(mbms,tpclt20,by=c("State","Mode"))
@@ -209,21 +231,21 @@ kable_styling(latex_options = c("striped", "scale_down")) %>%
 
 
 ```{r pTrips,echo=FALSE,warning=FALSE,fig.cap="2020 Monthly Marine Sportfishing Trips per Capita by State",fig.height=6,fig.width=5,fig.align='center'}
-tripsT3 %>%
+tripsTMPS %>%
   filter(Mode == 7 & Year > 2019) %>%
   ggplot( aes(x=Month,y=TPC, group=State, color=State)) +
   geom_line() + 
   ylab("Trips per capita") +
   ggtitle("Private Boats")
 
-tripsT3 %>%
+tripsTMPS %>%
   filter(Mode == 5 & Year > 2019) %>%
   ggplot( aes(x=Month,y=TPC, group=State, color=State)) +
   geom_line() + 
   ylab("Trips per capita") +
   ggtitle("Charter Boats")
 
-tripsT3 %>%
+tripsTMPS %>%
   filter(Mode == 3 & Year > 2019) %>%
   ggplot( aes(x=Month,y=TPC, group=State, color=State)) +
   geom_line() + 
@@ -233,7 +255,7 @@ tripsT3 %>%
 ```
 
 ```{r pString,echo=FALSE,warning=FALSE,fig.cap="Monthly 2020 stringency Index by State",fig.height=6,fig.width=5,fig.align='center'}
-tripsT3 %>% 
+tripsTMPS %>% 
   filter(Year > 2019) %>%
   ggplot( aes(x=Month,y=Stringency, group=State, color=State)) +
   geom_line() + 
@@ -280,9 +302,9 @@ Our results represent a composite effect of the actual local COVID policies, as 
 #Fixed effect poisson regressions of trips on stringency index with a population offset
 #Modeling trips per capita
 mf=formula(Trips ~ State + Month + I(Stringency/100) + I((Stringency/100)^2) + offset(log(Population)))
-pm=glm(mf,data=tripsT3,family = quasipoisson,subset=Mode==7 )
-cm=glm(mf,data=tripsT3,family = quasipoisson,subset=Mode==5 )
-sm=glm(mf,data=tripsT3,family = quasipoisson,subset=Mode==3 )
+pm=glm(mf,data=tripsTMPS,family = quasipoisson,subset=Mode==7 )
+cm=glm(mf,data=tripsTMPS,family = quasipoisson,subset=Mode==5 )
+sm=glm(mf,data=tripsTMPS,family = quasipoisson,subset=Mode==3 )
 
 ```
 
@@ -306,7 +328,7 @@ texreg(list(pm,cm,sm),custom.model.names = c("Private","Charter","Shore"),single
 #Using June in Florida: zero stringency should correspond with
 #the mean historical trips in Florida during June
 nd=data.frame(State="Florida",Month="06",
-              Population=with(tripsT3,mean(Population[State=="Florida" & Month=="06"])),
+              Population=with(tripsTMPS,mean(Population[State=="Florida" & Month=="06"])),
               Stringency=seq(0,3000,by=50))
 
 #Predicted trips as a function of stringency, including confidence intervals
@@ -357,7 +379,7 @@ par(mfrow=c(1,1))
 #   return(pd)
 # }
 # 
-# bcp=boot(subset(tripsT3,Mode==7),bf,R=1000)
+# bcp=boot(subset(tripsTMPS,Mode==7),bf,R=1000)
 # zz=sapply(1:61,FUN=function(i) boot.ci(boot.out = bcp, type = c("bca"),index=i)$bca)
 # 
 # plot(pd,type="l",ylim=c(2,6))
@@ -366,6 +388,42 @@ par(mfrow=c(1,1))
 
 ```
 
+```{r lmfeh,echo=FALSE,warning=FALSE}
+
+#Fixed effect regressions of trips on stringency index with a population offset
+#Modeling trips per capita
+mfh=formula(Hrsf ~ State + Month + I(Stringency/100) + I((Stringency/100)^2))
+pmh=lm(mfh,data=tripsTMPS,subset=Mode==7 )
+cmh=lm(mfh,data=tripsTMPS,subset=Mode==5 )
+smh=lm(mfh,data=tripsTMPS,subset=Mode==3 )
+
+library("sandwich")
+library("lmtest")
+pmhr <- coeftest(pmh, vcov = vcovHC)
+pse <- pmhr[, 2]
+ppval <- pmhr[, 4]
+
+cmhr <- coeftest(cmh, vcov = vcovHC)
+cse <- cmhr[, 2]
+cpval <- cmhr[, 4]
+
+smhr <- coeftest(smh, vcov = vcovHC)
+sse <- smhr[, 2]
+spval <- smhr[, 4]
+
+```
+
+```{r regTblh,echo=FALSE,warning=FALSE,results='asis'}
+
+
+texreg(list(pmh,cmh,smh),custom.model.names = c("Private","Charter","Shore"),single.row = TRUE,digits=3,label="regResultsh",
+       caption = "Linear Fixed Effect Regression of Mean Monthly Hours Fished on Covid-19 Stringency by Mode",
+       custom.coef.names = c("Intercept",staten,month.name[-1],
+                             "Stringency/100","(Stringency/100)^2"),
+       include.aic=FALSE,include.bic=FALSE,include.loglik=FALSE,caption.above = TRUE,
+       custom.note = "%stars based on robust standard errors. The base state is Alabama and the base Month is January.",
+       override.se=list(pse,cse,sse),override.pvalues=list(ppval,cpval,spval))
+```
 
 
 # References {#references .unnumbered}
