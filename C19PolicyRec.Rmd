@@ -17,7 +17,9 @@ address:
   - code: ECS
     address: Department 2, Street, City, State, Zip
   - code: NOAA Fisheries Office of Science and Technology
-    address: Department 2, Street, City, State, Zip    
+    address: Department 2, Street, City, State, Zip
+header-includes:
+   - \usepackage{threeparttable}    
 abstract: |
   Governments responded to the Covid-19 pandemic with different policies to curtail the spread of the virus. We show how sportfishing levels are related to the stringency of Covid-19 policies. Specifically, the number of sportfishing trips increases at a decreasing rate as Covid-19 policies become more stringent. 
   
@@ -45,6 +47,8 @@ library(texreg)
 library(cdlTools)
 library(kableExtra)
 library(ciTools)
+library(sandwich)
+library(lmtest)
 
 ```
 
@@ -66,6 +70,16 @@ trips=subset(trips,wp_int>0 & month!=99 & MODE_FX!=4 & ST==ST_RES)
 
 #Create counting variable for aggregation purposes
 trips$one=1
+
+#Mark party size of trips greather than 12 people as missing
+#99% if of trips have less than 13 people
+#cumsum(prop.table(table(trips$PARTY[trips$MODE_FX==7])))
+#cumsum(prop.table(table(trips$PARTY[trips$MODE_FX==5])))
+trips$PARTY[trips$PARTY>12]=NA
+
+#Marking hours fished greather than 24 hours as missing
+#table(trips$HRSF,useNA = "always")
+trips$HRSF[trips$HRSF>24]=NA
 
 
 #Merge in distance dataset TO DO
@@ -101,7 +115,7 @@ tripsTM$fips=as.numeric(as.character(tripsTM$ST))
 
 
 
-#Function to retrieve annual state population estimates from ACS
+○#Function to retrieve annual state population estimates from ACS
 acsY = function(y) {
   d=get_acs(geography = "state", 
             variables = "B01001_001", 
@@ -159,7 +173,7 @@ saveRDS(tripsTMPS,"tripsTMPS.rds")
 ```
 
 ```{r loadData,echo=FALSE,warning=FALSE}
-#Load the final dataset (still need to clean this dataset up)
+#Load the final dataset
 tripsTMPS=readRDS("tripsTMPS.rds")
 
 ```
@@ -297,6 +311,31 @@ Quasi-poisson regression estimated with mean equal to $exp(pop)*exp(xb)$ and var
 # Results
 Our results represent a composite effect of the actual local COVID policies, as well as localized attitudes, risk tolerances, and beliefs about COVID-19 which are correlated with COVID stringency. In particular, we see the inverse-U relationship we find to be the outcome of 2 countervailing pathways (laid out in the background section), (1) stringency reduces available substitutes of indoor or high-density outdoor activities, increasing the attractiveness of fishing, which is the dominant force on the low-stringency side of the curve, and (2) COVID risk makes even a relatively distanced activity, such as fishing, less appealing compared to entirely in-home activities such as cooking, backyard games, video games, etc., which is the dominating force on the high-stringency side of the curve.
 
+```{r sumSat,echo=FALSE,warning=FALSE,results='asis',message=FALSE}
+
+# ssbym=as.data.frame(t(aggregate(cbind(Trips,Hrsf,Party,Stringency)~Mode,data=tripsTMPS,
+#           FUN=function(x) cbind(mean(x), median(x), sd(x)))))
+# 
+# names(ssbym)=c("Shore","Charter","Private")
+# rownames(ssbym)=c("Mode",rep(c("Mean","Median","St. Dev."),4))
+# 
+# kbl(ssbym[-1,],row.names = rep(c("Mean","Median","St. Dev."),4)) %>%
+#   kable_classic() %>%
+#   pack_rows("Trips", 1, 3) %>%
+#   pack_rows("Hours Fished", 4, 6)  %>%
+#   pack_rows("Party Size", 7, 9)  %>%
+#   pack_rows("Stringency", 10, 12)
+
+library(vtable)
+st(tripsTMPS[,c("Trips","Hrsf","Party","Stringency","Mode")],
+   group = 'Mode', group.test = FALSE,group.long = TRUE,
+   title="Summary Statistics by Mode",
+   out="latex")
+
+```
+
+
+
 ```{r pfe,echo=FALSE,warning=FALSE}
 
 #Fixed effect poisson regressions of trips on stringency index with a population offset
@@ -312,14 +351,62 @@ sm=glm(mf,data=tripsTMPS,family = quasipoisson,subset=Mode==3 )
 
 staten=gsub("State","",names(coef(pm)))[2:16]
 
-texreg(list(pm,cm,sm),custom.model.names = c("Private","Charter","Shore"),single.row = TRUE,digits=3,label="regResults",
+texreg(list(pm,cm,sm),custom.model.names = c("Private","Charter","Shore"),single.row = FALSE,digits=3,label="regResults",
        caption = "Quasi-Poisson Fixed Effect Regression of Trips on Covid-19 Stringency by Mode",
-       custom.coef.names = c("Intercept",staten,month.name[-1],
-                             "Stringency/100","(Stringency/100)^2"),
+       #custom.coef.names = c("Intercept",staten,month.name[-1],
+       #                       "Stringency/100","(Stringency/100)^2"),
+       custom.coef.map=list("(Intercept)" = "Intercept",
+                            "I(Stringency/100)"="Stringency/100","I((Stringency/100)^2)"="(Stringency/100)^2"),
        include.aic=FALSE,include.bic=FALSE,include.loglik=FALSE,caption.above = TRUE,
        custom.note = "%stars. The base state is Alabama and the base Month is January.",
        custom.gof.rows = list("Scale" = c(summary(pm)$dispersion,summary(cm)$dispersion,summary(sm)$dispersion)))
+
+
 ```
+
+```{r statesFEplot,echo=FALSE,warning=FALSE,fig.cap="State Fixed Effects for Trips by Mode",fig.height=8,fig.width=4,message=FALSE}
+
+bn=list( "StateConnecticut" = "Connecticut",
+         "StateDelaware" = "Delaware",
+         "StateFlorida" = "Florida",
+         "StateGeorgia" = "Georgia",
+         "StateMaine" = "Maine", 
+         "StateMaryland" = "Maryland",
+         "StateMassachusetts" = "Massachusetts",
+         "StateMississippi" = "Mississippi",
+         "StateNew Hampshire" = "New Hampshire",
+         "StateNew Jersey" = "New Jersey",
+         "StateNew York" = "New York",
+         "StateNorth Carolina" = "North Carolina",
+         "StateRhode Island" = "Rhode Island",
+         "StateSouth Carolina" = "South Carolina",
+         "StateVirginia" = "Virginia",      
+         "Month02" = "February",
+         "Month03" = "March",
+         "Month04" = "April",
+         "Month05" = "May", 
+         "Month06" = "June",
+         "Month07" = "July",
+         "Month08" = "August",
+         "Month09" = "September",
+         "Month10" = "October", 
+         "Month11" = "November",
+         "Month12" = "December" )
+
+plotreg(list(pm,cm,sm),custom.model.names = c("Private","Charter","Shore"),
+        custom.coef.map=bn[2:15])
+
+
+```
+
+
+```{r monthsFEplot,echo=FALSE,warning=FALSE,fig.cap="Months Fixed Effects for Trips by Mode",fig.height=8,fig.width=4,message=FALSE}
+
+plotreg(list(pm,cm,sm),custom.model.names = c("Private","Charter","Shore"),
+        custom.coef.map=bn[16:27])
+
+```
+
 
 ```{r tripStringRel,echo=FALSE,warning=FALSE,fig.cap="Predicted Trips as a Function of the Stringency Index",fig.height=8,fig.width=4}
 
@@ -366,8 +453,6 @@ par(mfrow=c(1,1))
 
 #Don't think that we need robust standard error with the
 #Quasi-poisson, but here is how you would calculate them
-#library(sandwich)
-#library(lmtest)
 #coeftest(pm, vcov = vcovHC(pm, type="HC4"))
 
 #Bootstrapped prediction CI to verify (takes long to run as currently coded)
@@ -390,15 +475,12 @@ par(mfrow=c(1,1))
 
 ```{r lmfeh,echo=FALSE,warning=FALSE}
 
-#Fixed effect regressions of trips on stringency index with a population offset
-#Modeling trips per capita
+#Fixed effect regressions of mean hours fished on stringency index 
 mfh=formula(Hrsf ~ State + Month + I(Stringency/100) + I((Stringency/100)^2))
 pmh=lm(mfh,data=tripsTMPS,subset=Mode==7 )
 cmh=lm(mfh,data=tripsTMPS,subset=Mode==5 )
 smh=lm(mfh,data=tripsTMPS,subset=Mode==3 )
 
-library("sandwich")
-library("lmtest")
 pmhr <- coeftest(pmh, vcov = vcovHC)
 pse <- pmhr[, 2]
 ppval <- pmhr[, 4]
@@ -415,14 +497,160 @@ spval <- smhr[, 4]
 
 ```{r regTblh,echo=FALSE,warning=FALSE,results='asis'}
 
-
-texreg(list(pmh,cmh,smh),custom.model.names = c("Private","Charter","Shore"),single.row = TRUE,digits=3,label="regResultsh",
+texreg(list(pmh,cmh,smh),custom.model.names = c("Private","Charter","Shore"),single.row = FALSE,digits=3,label="regResultsh",
        caption = "Linear Fixed Effect Regression of Mean Monthly Hours Fished on Covid-19 Stringency by Mode",
-       custom.coef.names = c("Intercept",staten,month.name[-1],
-                             "Stringency/100","(Stringency/100)^2"),
+       # custom.coef.names = c("Intercept",staten,month.name[-1],
+       #                       "Stringency/100","(Stringency/100)^2"),
+       custom.coef.map=list("(Intercept)" = "Intercept",
+                            "I(Stringency/100)"="Stringency/100","I((Stringency/100)^2)"="(Stringency/100)^2"),
        include.aic=FALSE,include.bic=FALSE,include.loglik=FALSE,caption.above = TRUE,
-       custom.note = "%stars based on robust standard errors. The base state is Alabama and the base Month is January.",
+       custom.note = ("\\parbox{.6\\linewidth}{\\vspace{2pt} %stars based on robust standard errors. \\\\
+                      The base state is Alabama and the base Month is January.}"),
        override.se=list(pse,cse,sse),override.pvalues=list(ppval,cpval,spval))
+```
+
+
+```{r statesFEploth, echo=FALSE, fig.cap="State Fixed Effects for Hours Fished by Mode", fig.height=8, fig.width=4, warning=FALSE,message=FALSE}
+
+plotreg(list(pmh,cmh,smh),custom.model.names = c("Private","Charter","Shore"),
+        custom.coef.map=bn[2:15])
+
+
+```
+
+
+```{r monthsFEploth,echo=FALSE,warning=FALSE,fig.cap="Months Fixed Effects for Hours Fished by Mode",fig.height=8,fig.width=4,message=FALSE}
+
+plotreg(list(pmh,cmh,smh),custom.model.names = c("Private","Charter","Shore"),
+        custom.coef.map=bn[16:27])
+
+```
+
+```{r tripStringRelh,echo=FALSE,warning=FALSE,fig.cap="Predicted Hours Fished as a Function of the Stringency Index",fig.height=8,fig.width=4}
+
+#Predicted trips as a function of stringency, including confidence intervals
+pdh=add_ci(nd,pmh)
+cdh=add_ci(nd,cmh)
+sdh=add_ci(nd,smh)
+
+#Plot predicted trips and confidence intervals
+par(mfrow=c(3,1))
+
+plot(y=pdh$pred,x=pd$Stringency,type="l",ylim=c(3.5,5.5),
+     main="Private Boats",
+     xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
+     ylab="Mean Hours Fished (Scaled to June in FL)")
+lines(y=pdh$LCB0.025,x=pd$Stringency,lty=2)
+lines(y=pdh$UCB0.975,x=pd$Stringency,lty=2)
+
+plot(y=cdh$pred,x=cd$Stringency,type="l",ylim=c(3,7),
+     main="Charter Boats",
+     xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
+     ylab="Mean Hours Fished (Scaled to June in FL)")
+lines(y=cdh$LCB0.025,x=pd$Stringency,lty=2)
+lines(y=cdh$UCB0.975,x=pd$Stringency,lty=2)
+
+plot(y=sdh$pred,x=sd$Stringency,type="l",ylim=c(3,5.5),
+     main="Shore",
+     xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
+     ylab="Mean Hours Fished (Scaled to June in FL)")
+lines(y=sdh$LCB0.025,x=pd$Stringency,lty=2)
+lines(y=sdh$UCB0.975,x=pd$Stringency,lty=2)
+
+par(mfrow=c(1,1))
+
+
+```
+
+
+
+```{r lmfep,echo=FALSE,warning=FALSE}
+
+#Fixed effect regressions of mean hours fished on stringency index 
+mfp=formula(Party ~ State + Month + I(Stringency/100) + I((Stringency/100)^2))
+pmp=lm(mfp,data=tripsTMPS,subset=Mode==7 )
+cmp=lm(mfp,data=tripsTMPS,subset=Mode==5 )
+smp=lm(mfp,data=tripsTMPS,subset=Mode==3 )
+
+pmpr <- coeftest(pmp, vcov = vcovHC)
+psep <- pmpr[, 2]
+ppvalp <- pmpr[, 4]
+
+cmpr <- coeftest(cmp, vcov = vcovHC)
+csep <- cmpr[, 2]
+cpvalp <- cmpr[, 4]
+
+smpr <- coeftest(smp, vcov = vcovHC)
+ssep <- smpr[, 2]
+spvalp <- smpr[, 4]
+
+```
+
+```{r regTblp,echo=FALSE,warning=FALSE,results='asis'}
+
+texreg(list(pmp,cmp,smp),custom.model.names = c("Private","Charter","Shore"),single.row = FALSE,digits=3,label="regResultsp",
+       caption = "Linear Fixed Effect Regression of Mean Fishing Party Size on Covid-19 Stringency by Mode",
+       # custom.coef.names = c("Intercept",staten,month.name[-1],
+       #                       "Stringency/100","(Stringency/100)^2"),
+       custom.coef.map=list("(Intercept)" = "Intercept",
+                            "I(Stringency/100)"="Stringency/100","I((Stringency/100)^2)"="(Stringency/100)^2"),
+       include.aic=FALSE,include.bic=FALSE,include.loglik=FALSE,caption.above = TRUE,
+       custom.note = ("\\parbox{.6\\linewidth}{\\vspace{2pt} %stars based on robust standard errors. \\\\
+                      The base state is Alabama and the base Month is January.}"),
+       override.se=list(psep,csep,ssep),override.pvalues=list(ppvalp,cpvalp,spvalp))
+```
+
+
+```{r statesFEplotp,echo=FALSE,warning=FALSE,fig.cap="State Fixed Effects for Party Size by Mode",fig.height=8,fig.width=4,message=FALSE}
+
+plotreg(list(pmp,cmp,smp),custom.model.names = c("Private","Charter","Shore"),
+        custom.coef.map=bn[2:15])
+
+
+```
+
+
+```{r monthsFEplotp,echo=FALSE,warning=FALSE,fig.cap="Months Fixed Effects for Party Size Fished by Mode",fig.height=8,fig.width=4,message=FALSE}
+
+plotreg(list(pmp,cmp,smp),custom.model.names = c("Private","Charter","Shore"),
+        custom.coef.map=bn[16:27])
+
+```
+
+```{r tripStringRelp,echo=FALSE,warning=FALSE,fig.cap="Predicted Party Size as a Function of the Stringency Index",fig.height=8,fig.width=4}
+
+#Predicted party size as a function of stringency, including confidence intervals
+pdp=add_ci(nd,pmp)
+cdp=add_ci(nd,cmp)
+sdp=add_ci(nd,smp)
+
+#Plot predicted party size and confidence intervals
+par(mfrow=c(3,1))
+
+plot(y=pdp$pred,x=pd$Stringency,type="l",ylim=c(2,5),
+     main="Private Boats",
+     xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
+     ylab="Mean Party Size (Scaled to June in FL)")
+lines(y=pdp$LCB0.025,x=pd$Stringency,lty=2)
+lines(y=pdp$UCB0.975,x=pd$Stringency,lty=2)
+
+plot(y=cdp$pred,x=cd$Stringency,type="l",ylim=c(3,7),
+     main="Charter Boats",
+     xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
+     ylab="Mean Party Size ( (Scaled to June in FL)")
+lines(y=cdp$LCB0.025,x=pd$Stringency,lty=2)
+lines(y=cdp$UCB0.975,x=pd$Stringency,lty=2)
+
+plot(y=sdp$pred,x=sd$Stringency,type="l",ylim=c(3,5.5),
+     main="Shore",
+     xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
+     ylab="Mean Party Size ( (Scaled to June in FL)")
+lines(y=sdp$LCB0.025,x=pd$Stringency,lty=2)
+lines(y=sdp$UCB0.975,x=pd$Stringency,lty=2)
+
+par(mfrow=c(1,1))
+
+
 ```
 
 
