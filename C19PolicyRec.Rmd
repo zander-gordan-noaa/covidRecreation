@@ -218,33 +218,8 @@ We assemble monthly observations from 2017-2020 for three different modes of fis
   + 2020 Census
   
 * Monthly C-19 Stringency index for each state bordering the Atlantic and Gulf of Mexico
-  + daily estimates summed to each month[a]
+  + daily estimates summed to each month
   + higher numbers equate with more stringent policies
-
-```{r sumStat,echo=FALSE,warning=FALSE,results='asis'}
-
-#Average trips per capita by state and mode for the years prior to 2020
-tpclt20=aggregate(TPC~State+Mode,FUN=mean,data=tripsTMPS,subset=Year<2020)
-names(tpclt20)[3]="TPClt20"
-
-#Average trips, stringency, and trips per capita by state and mode for 2020
-mbms=aggregate(cbind(Trips,Stringency,TPC)~State+Mode,FUN=mean,data=tripsTMPS,subset=Year==2020)
-
-#Combine the means for 2020 and years prior by state and mode
-mbms=merge(mbms,tpclt20,by=c("State","Mode"))
-
-#Ratio of the average trips per capita in 2020 to the average trips per capita in prior years by state and mode
-mbms$TPCdTPClt20=mbms$TPC/mbms$TPClt20
-
-mbms=mbms[order(mbms$Mode,mbms$State),]
-
-kbl(mbms, "latex",digits=c(rep(0,4),rep(3,3)),row.names = FALSE,label = "sumSt",
-      col.names = c(names(mbms)[1:4],"Trips/Pop (2020)","Trips/Pop (before 2020)","Trips/Pop (ratio)"),
-    caption = "Mean Estimates by Mode and State", booktabs = T)  %>%
-kable_styling(latex_options = c("striped", "scale_down")) %>%
-  column_spec(5:7, width = "2cm")
-
-```
 
 
 ```{r private_boat_trips_seasonality_plot,echo=FALSE,warning=FALSE,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips per Capita by State. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the peak month. The bold line gives a simple average of these relative monthly values across the 16 states."}
@@ -665,5 +640,3 @@ par(mfrow=c(1,1))
 
 
 # References {#references .unnumbered}
-
-[a]why not average? Different months have different numbers of days
