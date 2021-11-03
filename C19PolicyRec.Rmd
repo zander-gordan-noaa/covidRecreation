@@ -99,8 +99,8 @@ tripsTM=merge(tripsT,tripsM,by=c("YEAR","month","MODE_FX","ST"))
 
 #Setting missing trip estimates to zero and preparing variables for merge
 tripsTM$one[is.na(tripsTM$one)]=0
-tripsTM$HRSF[is.na(tripsTM$HRSF)]=0
-tripsTM$PARTY[is.na(tripsTM$PARTY)]=0
+#tripsTM$HRSF[is.na(tripsTM$HRSF)]=0
+#tripsTM$PARTY[is.na(tripsTM$PARTY)]=0
 
 
 #Proportional standard error for each estimate
@@ -115,7 +115,7 @@ tripsTM$fips=as.numeric(as.character(tripsTM$ST))
 
 
 
-○#Function to retrieve annual state population estimates from ACS
+#Function to retrieve annual state population estimates from ACS
 acsY = function(y) {
   d=get_acs(geography = "state", 
             variables = "B01001_001", 
@@ -568,7 +568,6 @@ par(mfrow=c(1,1))
 mfp=formula(Party ~ State + Month + I(Stringency/100) + I((Stringency/100)^2))
 pmp=lm(mfp,data=tripsTMPS,subset=Mode==7 )
 cmp=lm(mfp,data=tripsTMPS,subset=Mode==5 )
-smp=lm(mfp,data=tripsTMPS,subset=Mode==3 )
 
 pmpr <- coeftest(pmp, vcov = vcovHC)
 psep <- pmpr[, 2]
@@ -578,15 +577,11 @@ cmpr <- coeftest(cmp, vcov = vcovHC)
 csep <- cmpr[, 2]
 cpvalp <- cmpr[, 4]
 
-smpr <- coeftest(smp, vcov = vcovHC)
-ssep <- smpr[, 2]
-spvalp <- smpr[, 4]
-
 ```
 
 ```{r regTblp,echo=FALSE,warning=FALSE,results='asis'}
 
-texreg(list(pmp,cmp,smp),custom.model.names = c("Private","Charter","Shore"),single.row = FALSE,digits=3,label="regResultsp",
+texreg(list(pmp,cmp),custom.model.names = c("Private","Charter"),single.row = FALSE,digits=3,label="regResultsp",
        caption = "Linear Fixed Effect Regression of Mean Fishing Party Size on Covid-19 Stringency by Mode",
        # custom.coef.names = c("Intercept",staten,month.name[-1],
        #                       "Stringency/100","(Stringency/100)^2"),
@@ -595,13 +590,13 @@ texreg(list(pmp,cmp,smp),custom.model.names = c("Private","Charter","Shore"),sin
        include.aic=FALSE,include.bic=FALSE,include.loglik=FALSE,caption.above = TRUE,
        custom.note = ("\\parbox{.6\\linewidth}{\\vspace{2pt} %stars based on robust standard errors. \\\\
                       The base state is Alabama and the base Month is January.}"),
-       override.se=list(psep,csep,ssep),override.pvalues=list(ppvalp,cpvalp,spvalp))
+       override.se=list(psep,csep),override.pvalues=list(ppvalp,cpvalp))
 ```
 
 
 ```{r statesFEplotp,echo=FALSE,warning=FALSE,fig.cap="State Fixed Effects for Party Size by Mode",fig.height=8,fig.width=4,message=FALSE}
 
-plotreg(list(pmp,cmp,smp),custom.model.names = c("Private","Charter","Shore"),
+plotreg(list(pmp,cmp),custom.model.names = c("Private","Charter"),
         custom.coef.map=bn[2:15])
 
 
@@ -610,7 +605,7 @@ plotreg(list(pmp,cmp,smp),custom.model.names = c("Private","Charter","Shore"),
 
 ```{r monthsFEplotp,echo=FALSE,warning=FALSE,fig.cap="Months Fixed Effects for Party Size Fished by Mode",fig.height=8,fig.width=4,message=FALSE}
 
-plotreg(list(pmp,cmp,smp),custom.model.names = c("Private","Charter","Shore"),
+plotreg(list(pmp,cmp),custom.model.names = c("Private","Charter"),
         custom.coef.map=bn[16:27])
 
 ```
@@ -620,10 +615,9 @@ plotreg(list(pmp,cmp,smp),custom.model.names = c("Private","Charter","Shore"),
 #Predicted party size as a function of stringency, including confidence intervals
 pdp=add_ci(nd,pmp)
 cdp=add_ci(nd,cmp)
-sdp=add_ci(nd,smp)
 
 #Plot predicted party size and confidence intervals
-par(mfrow=c(3,1))
+par(mfrow=c(2,1))
 
 plot(y=pdp$pred,x=pd$Stringency,type="l",ylim=c(2,5),
      main="Private Boats",
@@ -639,12 +633,6 @@ plot(y=cdp$pred,x=cd$Stringency,type="l",ylim=c(3,7),
 lines(y=cdp$LCB0.025,x=pd$Stringency,lty=2)
 lines(y=cdp$UCB0.975,x=pd$Stringency,lty=2)
 
-plot(y=sdp$pred,x=sd$Stringency,type="l",ylim=c(3,5.5),
-     main="Shore",
-     xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
-     ylab="Mean Party Size ( (Scaled to June in FL)")
-lines(y=sdp$LCB0.025,x=pd$Stringency,lty=2)
-lines(y=sdp$UCB0.975,x=pd$Stringency,lty=2)
 
 par(mfrow=c(1,1))
 
