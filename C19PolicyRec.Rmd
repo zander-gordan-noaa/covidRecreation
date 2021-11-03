@@ -51,7 +51,7 @@ library(kableExtra)
 library(ciTools)
 library(sandwich)
 library(lmtest)
-
+library(fst)
 ```
 
 ```{r,echo=FALSE,warning=FALSE,eval=FALSE}
@@ -85,16 +85,17 @@ trips$HRSF[trips$HRSF>24]=NA
 
 
 #Merge in distance dataset TO DO
-
+dist=read_fst("distAll.fst")
+trips=merge(trips,dist,by=c("ZIP","ST","CNTY","INTSITE"),all.x=TRUE)
 
 #Trips survey design object
 tripss=svydesign(id=~psu_id, strata=~strat_id,weights=~wp_int, data=trips)
 
 #Estimated trips by year, month, mode, and state
-tripsT=svyby(~one,~YEAR+month+MODE_FX+ST,FUN=svytotal,design=tripss,drop.empty.groups=FALSE)
+tripsT=svyby(~one,~YEAR+month+MODE_FX+ST,FUN=svytotal,design=tripss,drop.empty.groups=FALSE,na.rm=TRUE)
 
 #Estimated trips by year, month, mode, and state
-tripsM=svyby(~HRSF+PARTY,~YEAR+month+MODE_FX+ST,FUN=svymean,design=tripss,drop.empty.groups=FALSE)
+tripsM=svyby(~HRSF+PARTY+MILES,~YEAR+month+MODE_FX+ST,FUN=svymean,design=tripss,drop.empty.groups=FALSE,na.rm=TRUE)
 
 #Combining the monthly observation datasets
 tripsTM=merge(tripsT,tripsM,by=c("YEAR","month","MODE_FX","ST"))
@@ -109,6 +110,7 @@ tripsTM$one[is.na(tripsTM$one)]=0
 tripsTM$Trips_pse=with(tripsTM,ifelse(one>0,se/one,NA))
 tripsTM$Hrsf_pse=with(tripsTM,ifelse(HRSF>0,se.HRSF/HRSF,NA))
 tripsTM$Party_pse=with(tripsTM,ifelse(PARTY>0,se.PARTY/PARTY,NA))
+tripsTM$Miles_pse=with(tripsTM,ifelse(MILES>0,se.MILES/MILES,NA))
 
 
 tripsTM$MONTH=as.numeric(tripsTM$month)
@@ -161,9 +163,9 @@ tripsTMPS$value[is.na(tripsTMPS$value)]=0
 
 #Cleaning up and naming variables in dataset
 tripsTMPS=subset(tripsTMPS,select=-c(YEAR,MONTH,variable,moe,fips,ST))
-names(tripsTMPS)=c("Year","Month","Mode","Trips","Trips_se","Hrsf","Party",
-                   "Hrsf_se","Party_se",
-                   "Trips_pse","Hrsf_pse","Party_pse",
+names(tripsTMPS)=c("Year","Month","Mode","Trips","Trips_se","Hrsf","Party","Miles",
+                   "Hrsf_se","Party_se","Miles_se",
+                   "Trips_pse","Hrsf_pse","Party_pse","Miles_pse",
                    "FIPS","State","Population","Stringency")
 
 #Trips per capita
@@ -475,15 +477,15 @@ plot(y=cd$pred/1000000,x=cd$Stringency,type="l",ylim=c(.04,.09),
      main="Charter Boats",
      xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
      ylab="Millions of Fishing Trips (Scaled to June in FL)")
-lines(y=cd$LCB0.025/1000000,x=pd$Stringency,lty=2)
-lines(y=cd$UCB0.975/1000000,x=pd$Stringency,lty=2)
+lines(y=cd$LCB0.025/1000000,x=cd$Stringency,lty=2)
+lines(y=cd$UCB0.975/1000000,x=cd$Stringency,lty=2)
 
 plot(y=sd$pred/1000000,x=sd$Stringency,type="l",ylim=c(3,7),
      main="Shore",
      xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
      ylab="Millions of Fishing Trips (Scaled to June in FL)")
-lines(y=sd$LCB0.025/1000000,x=pd$Stringency,lty=2)
-lines(y=sd$UCB0.975/1000000,x=pd$Stringency,lty=2)
+lines(y=sd$LCB0.025/1000000,x=sd$Stringency,lty=2)
+lines(y=sd$UCB0.975/1000000,x=sd$Stringency,lty=2)
 
 par(mfrow=c(1,1))
 
@@ -574,26 +576,26 @@ sdh=add_ci(nd,smh)
 #Plot predicted trips and confidence intervals
 par(mfrow=c(3,1))
 
-plot(y=pdh$pred,x=pd$Stringency,type="l",ylim=c(3.5,5.5),
+plot(y=pdh$pred,x=pdh$Stringency,type="l",ylim=c(3.5,5.5),
      main="Private Boats",
      xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
      ylab="Mean Hours Fished (Scaled to June in FL)")
-lines(y=pdh$LCB0.025,x=pd$Stringency,lty=2)
-lines(y=pdh$UCB0.975,x=pd$Stringency,lty=2)
+lines(y=pdh$LCB0.025,x=pdh$Stringency,lty=2)
+lines(y=pdh$UCB0.975,x=pdh$Stringency,lty=2)
 
-plot(y=cdh$pred,x=cd$Stringency,type="l",ylim=c(3,7),
+plot(y=cdh$pred,x=cdh$Stringency,type="l",ylim=c(3,7),
      main="Charter Boats",
      xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
      ylab="Mean Hours Fished (Scaled to June in FL)")
-lines(y=cdh$LCB0.025,x=pd$Stringency,lty=2)
-lines(y=cdh$UCB0.975,x=pd$Stringency,lty=2)
+lines(y=cdh$LCB0.025,x=cdh$Stringency,lty=2)
+lines(y=cdh$UCB0.975,x=cdh$Stringency,lty=2)
 
-plot(y=sdh$pred,x=sd$Stringency,type="l",ylim=c(3,5.5),
+plot(y=sdh$pred,x=sdh$Stringency,type="l",ylim=c(3,5.5),
      main="Shore",
      xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
      ylab="Mean Hours Fished (Scaled to June in FL)")
-lines(y=sdh$LCB0.025,x=pd$Stringency,lty=2)
-lines(y=sdh$UCB0.975,x=pd$Stringency,lty=2)
+lines(y=sdh$LCB0.025,x=sdh$Stringency,lty=2)
+lines(y=sdh$UCB0.975,x=sdh$Stringency,lty=2)
 
 par(mfrow=c(1,1))
 
@@ -659,25 +661,120 @@ cdp=add_ci(nd,cmp)
 #Plot predicted party size and confidence intervals
 par(mfrow=c(2,1))
 
-plot(y=pdp$pred,x=pd$Stringency,type="l",ylim=c(2,5),
+plot(y=pdp$pred,x=pdp$Stringency,type="l",ylim=c(2,5),
      main="Private Boats",
      xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
      ylab="Mean Party Size (Scaled to June in FL)")
-lines(y=pdp$LCB0.025,x=pd$Stringency,lty=2)
-lines(y=pdp$UCB0.975,x=pd$Stringency,lty=2)
+lines(y=pdp$LCB0.025,x=pdp$Stringency,lty=2)
+lines(y=pdp$UCB0.975,x=pdp$Stringency,lty=2)
 
-plot(y=cdp$pred,x=cd$Stringency,type="l",ylim=c(3,7),
+plot(y=cdp$pred,x=cdp$Stringency,type="l",ylim=c(3,7),
      main="Charter Boats",
      xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
      ylab="Mean Party Size ( (Scaled to June in FL)")
-lines(y=cdp$LCB0.025,x=pd$Stringency,lty=2)
-lines(y=cdp$UCB0.975,x=pd$Stringency,lty=2)
+lines(y=cdp$LCB0.025,x=cdp$Stringency,lty=2)
+lines(y=cdp$UCB0.975,x=cdp$Stringency,lty=2)
 
 
 par(mfrow=c(1,1))
 
 
 ```
+
+
+
+
+
+```{r lmfem,echo=FALSE,warning=FALSE}
+
+#Fixed effect regressions of mean hours fished on stringency index 
+mfm=formula(Miles ~ State + Month + I(Stringency/100) + I((Stringency/100)^2))
+pmm=lm(mfm,data=tripsTMPS,subset=Mode==7 )
+cmm=lm(mfm,data=tripsTMPS,subset=Mode==5 )
+smm=lm(mfm,data=tripsTMPS,subset=Mode==3 )
+
+pmmr <- coeftest(pmm, vcov = vcovHC)
+psem <- pmmr[, 2]
+ppvalm <- pmmr[, 4]
+
+cmmr <- coeftest(cmm, vcov = vcovHC)
+csem <- cmmr[, 2]
+cpvalm <- cmmr[, 4]
+
+smmr <- coeftest(smm, vcov = vcovHC)
+ssem <- smmr[, 2]
+spvalm <- smmr[, 4]
+
+```
+
+```{r regTblm,echo=FALSE,warning=FALSE,results='asis'}
+
+texreg(list(pmm,cmm,smm),custom.model.names = c("Private","Charter","Shore"),single.row = FALSE,digits=3,label="regResultsh",
+       caption = "Linear Fixed Effect Regression of Mean Miles Traveled on Covid-19 Stringency by Mode",
+       # custom.coef.names = c("Intercept",staten,month.name[-1],
+       #                       "Stringency/100","(Stringency/100)^2"),
+       custom.coef.map=list("(Intercept)" = "Intercept",
+                            "I(Stringency/100)"="Stringency/100","I((Stringency/100)^2)"="(Stringency/100)^2"),
+       include.aic=FALSE,include.bic=FALSE,include.loglik=FALSE,caption.above = TRUE,
+       custom.note = ("\\parbox{.6\\linewidth}{\\vspace{2pt} %stars based on robust standard errors. \\\\
+                      The base state is Alabama and the base Month is January.}"),
+       override.se=list(psem,csem,ssem),override.pvalues=list(ppvalm,cpvalm,spvalm))
+```
+
+
+```{r statesFEplotm, echo=FALSE, fig.cap="State Fixed Effects for Miles Traveled by Mode", fig.height=8, fig.width=4, warning=FALSE,message=FALSE}
+
+plotreg(list(pmm,cmm,smm),custom.model.names = c("Private","Charter","Shore"),
+        custom.coef.map=bn[2:15])
+
+
+```
+
+
+```{r monthsFEplotm,echo=FALSE,warning=FALSE,fig.cap="Months Fixed Effects for Distance Traveled by Mode",fig.height=8,fig.width=4,message=FALSE}
+
+plotreg(list(pmm,cmm,smm),custom.model.names = c("Private","Charter","Shore"),
+        custom.coef.map=bn[16:27])
+
+```
+
+```{r tripStringRelm,echo=FALSE,warning=FALSE,fig.cap="Predicted Distance Traveled as a Function of the Stringency Index",fig.height=8,fig.width=4}
+
+#Predicted trips as a function of stringency, including confidence intervals
+pdm=add_ci(nd,pmm)
+cdm=add_ci(nd,cmm)
+sdm=add_ci(nd,smm)
+
+#Plot predicted trips and confidence intervals
+par(mfrow=c(3,1))
+
+plot(y=pdm$pred,x=pdm$Stringency,type="l",ylim=c(20,35),
+     main="Private Boats",
+     xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
+     ylab="Mean Distance Traveled (Scaled to June in FL)")
+lines(y=pdm$LCB0.025,x=pdm$Stringency,lty=2)
+lines(y=pdm$UCB0.975,x=pdm$Stringency,lty=2)
+
+plot(y=cdm$pred,x=cdm$Stringency,type="l",ylim=c(20,70),
+     main="Charter Boats",
+     xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
+     ylab="Mean Distance Traveled (Scaled to June in FL)")
+lines(y=cdm$LCB0.025,x=cdm$Stringency,lty=2)
+lines(y=cdm$UCB0.975,x=cdm$Stringency,lty=2)
+
+plot(y=sdm$pred,x=sdm$Stringency,type="l",ylim=c(-1,1),
+     main="Shore",
+     xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
+     ylab="Mean Distance Traveled (Scaled to June in FL)")
+lines(y=sdm$LCB0.025,x=sdm$Stringency,lty=2)
+lines(y=sdm$UCB0.975,x=sdm$Stringency,lty=2)
+
+par(mfrow=c(1,1))
+
+
+```
+
+
 
 
 # References {#references .unnumbered}
