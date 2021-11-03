@@ -27,7 +27,9 @@ author_summary: |
   He does this and that.
   
 bibliography: C19PolicyRec.bib
-output: rticles::plos_article
+output:
+  bookdown::pdf_book:
+    base_format: rticles::plos_article
 csl: plos.csl
 editor_options: 
   chunk_output_type: console
@@ -234,8 +236,7 @@ mbms$TPCdTPClt20=mbms$TPC/mbms$TPClt20
 mbms=mbms[order(mbms$Mode,mbms$State),]
 ```
 
-
-```{r private_boat_trips_seasonality_plot,echo=FALSE,warning=FALSE,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the peak month. The bold line gives a simple average of these relative monthly values across the 16 states."}
+```{r private-boat-trips-seasonality-plot,echo=FALSE,warning=FALSE,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the peak month. The bold line gives a simple average of these relative monthly values across the 16 states."}
 tripsTMPS %>%
   filter(Mode == 7 & Year == 2019) %>%
   group_by(State) %>% 
@@ -249,6 +250,45 @@ tripsTMPS %>%
   ylab("Trips (relative to peak trips)") +
   ggtitle("Private Boats")
 ```
+
+Figure \@ref(fig:private-boat-trips-seasonality-plot) displays seasonal trends
+in the level of trips across the 16 states in the dataset. Each grey line plots
+the seasonal pattern for one state, with the values scaled relative to the state's
+peak month. The black line provides a simple average of these relative values across
+the 16 states within each month, so that the black line represents the composite
+national-level seasonality trend in fishing trips among these 16 states. July is
+both the modal peak month among the states, and the peak month for the national 
+trend. There are many state-months in which 0 trips occur,^[or at least no trips
+are recorded by MRIP, need to point to the data documentation here] and in 
+particular there are only 4 states with positive trips in January: Florida (with
+ of trips occurring in January), North Carolina (37%), Alabama (27%), and
+Mississippi (21%).^[why does South Carolina have 0 trips if North Carolina has 
+positive trips and the ostensible explanation for the 0 trips is cold??]
+
+```{r private-boat-trips-seasonality-plot2,echo=FALSE,warning=FALSE,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State, relative to annual total."}
+tripsTMPS %>%
+  filter(Mode == 7 & Year == 2019) %>%
+  group_by(State) %>% 
+  mutate(relative_TPC = TPC / sum(TPC)) %>% 
+  ggplot(aes(x=Month, y=relative_TPC, group=State)) +
+  geom_line(alpha = 0.08) +
+  stat_summary(mapping = aes(x=Month,  y=relative_TPC, group = 1), 
+               fun = "mean", 
+               geom = "line",
+               inherit.aes = FALSE) +
+  ylab("Trips (as a fraction of annual total)") +
+  ggtitle("Private Boats")
+```
+
+Figure \@ref(fig:private-boat-trips-seasonality-plot2) shows the same curves as 
+in Figure \@ref(fig:private-boat-trips-seasonality-plot), but rescaled to show
+values as a fraction of the annual total. This shows that fishing activity
+is in most states fairly broadly distributed from April through November, with 
+only 10 state-months accounting for more than 20% of the 
+annual trips in a state, and a maximum of 35% for Maine in June. All but 1 of the 10
+state-months with more than 20% of annual trips come from the Northern states of
+Maine, New Hampshire, Massachusetts, Delaware and Rhode Island, with July in 
+Mississippi as the exception.
 
 ```{r pTrips,echo=FALSE,warning=FALSE,fig.cap="2020 Monthly Marine Sportfishing Trips per Capita by State",fig.height=6,fig.width=5,fig.align='center'}
 tripsTMPS %>%
