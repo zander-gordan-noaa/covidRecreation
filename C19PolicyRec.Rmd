@@ -1,5 +1,5 @@
 ---
-title: Covid19 Policy Stringency and Outdoor Recreation The Case of Resident Marine Sportfishing in the United States
+title: "COVID-19 Policy Stringency and Outdoor Recreation: The Case of Resident Marine Sportfishing in the United States"
 author:
   - name: David W. Carter
     email: david.w.carter@noaa.gov
@@ -21,7 +21,7 @@ address:
 header-includes:
    - \usepackage{threeparttable}    
 abstract: |
-  Governments responded to the Covid-19 pandemic with different policies to curtail the spread of the virus. We show how sportfishing levels are related to the stringency of Covid-19 policies. Specifically, the number of sportfishing trips increases at a decreasing rate as Covid-19 policies become more stringent. 
+  Governments responded to the Covid-19 pandemic with different policies to curtail the spread of the virus. We show how sportfishing levels are related to the stringency of Covid-19 policies. Specifically, the number of sportfishing trips bears an inverse-U-shaped relationship with Covid-19 policy stringency. 
   
 author_summary: |
   He does this and that.
@@ -183,15 +183,20 @@ tripsTMPS=readRDS("tripsTMPS.rds")
 * Intro to C-19 and the anecdotal evidence related to C-19 and recreation
 * Literature review
 * Research question: How do outdoor recreation levels change as governments institute policies to protect public health during a pandemic?
-* Approach: variation in state stringency policies to identify the effect of C-19 on sportfishing levels
+* Approach: variation in state stringency policies to describe the relationship between C-19 and sportfishing levels
 
-Landry et al (2021) provide a useful summary of potential causal pathways through which COVID-19 may affect ourdoor recreation:
+Landry et al (2021) provide a useful summary of potential causal pathways through which COVID-19 may affect outdoor recreation:
+
 1. blah
+
 2. Blah blah
+
 3. Blah blah blah
 
 To which we may add:
+
 4. Etc
+
 5. Etc etc
 
 
@@ -242,16 +247,22 @@ kable_styling(latex_options = c("striped", "scale_down")) %>%
 ```
 
 
-
+```{r private_boat_trips_seasonality_plot,echo=FALSE,warning=FALSE,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips per Capita by State. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the peak month. The bold line gives a simple average of these relative monthly values across the 16 states."}
+tripsTMPS %>%
+  filter(Mode == 7 & Year == 2019) %>%
+  group_by(State) %>% 
+  mutate(relative_TPC = TPC / max(TPC)) %>% 
+  ggplot(aes(x=Month, y=relative_TPC, group=State)) +
+  geom_line(alpha = 0.08) +
+  stat_summary(mapping = aes(x=Month,  y=relative_TPC, group = 1), 
+               fun = "mean", 
+               geom = "line",
+               inherit.aes = FALSE) +
+  ylab("Trips (relative to peak trips)") +
+  ggtitle("Private Boats")
+```
 
 ```{r pTrips,echo=FALSE,warning=FALSE,fig.cap="2020 Monthly Marine Sportfishing Trips per Capita by State",fig.height=6,fig.width=5,fig.align='center'}
-tripsTMPS %>%
-  filter(Mode == 7 & Year > 2019) %>%
-  ggplot( aes(x=Month,y=TPC, group=State, color=State)) +
-  geom_line() + 
-  ylab("Trips per capita") +
-  ggtitle("Private Boats")
-
 tripsTMPS %>%
   filter(Mode == 5 & Year > 2019) %>%
   ggplot( aes(x=Month,y=TPC, group=State, color=State)) +
@@ -265,7 +276,6 @@ tripsTMPS %>%
   geom_line() + 
   ylab("Trips per capita") +
   ggtitle("Shore")
-
 ```
 
 ```{r pString,echo=FALSE,warning=FALSE,fig.cap="Monthly 2020 stringency Index by State",fig.height=6,fig.width=5,fig.align='center'}
