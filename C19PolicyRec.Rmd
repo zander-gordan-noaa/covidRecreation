@@ -222,7 +222,7 @@ We assemble monthly observations from 2017-2020 for three different modes of fis
   + higher numbers equate with more stringent policies
 
 
-```{r}
+```{r, echo=FALSE,warning=FALSE}
 tpclt20=aggregate(TPC~State+Mode,FUN=mean,data=tripsTMPS,subset=Year<2020)
 names(tpclt20)[3]="TPClt20"
 #Average trips, stringency, and trips per capita by state and mode for 2020
