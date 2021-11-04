@@ -79,38 +79,34 @@ trips$one=1
 #cumsum(prop.table(table(trips$PARTY[trips$MODE_FX==5])))
 trips$PARTY[trips$PARTY>12]=NA
 
-#Marking hours fished greather than 24 hours as missing
+#Marking hours fished greater than 24 hours as missing
 #table(trips$HRSF,useNA = "always")
-trips$HRSF[trips$HRSF>24]=NA
+#There were also a few trips with zero hours fished, marking as missing
+trips$HRSF[trips$HRSF>24 | trips$HRSF==0]=NA
 
-
-#Merge in distance dataset TO DO
+#Merge in distance dataset
 dist=read_fst("distAll.fst")
 trips=merge(trips,dist,by=c("ZIP","ST","CNTY","INTSITE"),all.x=TRUE)
 
-#Trips survey design object
-tripss=svydesign(id=~psu_id, strata=~strat_id,weights=~wp_int, data=trips)
+tripsTM = 
+  trips %>%
+  complete(YEAR,month,MODE_FX,ST) %>%
+  group_by(YEAR,month,MODE_FX,ST) %>%
+  summarize(N_obs = n(),
+            Trips = sum(wp_int,na.rm=TRUE),
+            Hrsf  = weighted.mean(HRSF,wp_int,na.rm=TRUE),
+            Party = weighted.mean(PARTY,wp_int,na.rm=TRUE),
+            Miles = weighted.mean(MILES,wp_int,na.rm=TRUE),
+            Htvl  = weighted.mean(TRAVELHOURS,wp_int,na.rm=TRUE)) 
 
-#Estimated trips by year, month, mode, and state
-tripsT=svyby(~one,~YEAR+month+MODE_FX+ST,FUN=svytotal,design=tripss,drop.empty.groups=FALSE,na.rm=TRUE)
 
-#Estimated trips by year, month, mode, and state
-tripsM=svyby(~HRSF+PARTY+MILES,~YEAR+month+MODE_FX+ST,FUN=svymean,design=tripss,drop.empty.groups=FALSE,na.rm=TRUE)
+#prop.table(table(TripsTM$N_obs==1 & !is.na(TripsTM$Hrsf)))
 
-#Combining the monthly observation datasets
-tripsTM=merge(tripsT,tripsM,by=c("YEAR","month","MODE_FX","ST"))
 
 #Setting missing trip estimates to zero and preparing variables for merge
-tripsTM$one[is.na(tripsTM$one)]=0
+#tripsTM$trips[is.na(tripsTM$Trips)]=0
 #tripsTM$HRSF[is.na(tripsTM$HRSF)]=0
 #tripsTM$PARTY[is.na(tripsTM$PARTY)]=0
-
-
-#Proportional standard error for each estimate
-tripsTM$Trips_pse=with(tripsTM,ifelse(one>0,se/one,NA))
-tripsTM$Hrsf_pse=with(tripsTM,ifelse(HRSF>0,se.HRSF/HRSF,NA))
-tripsTM$Party_pse=with(tripsTM,ifelse(PARTY>0,se.PARTY/PARTY,NA))
-tripsTM$Miles_pse=with(tripsTM,ifelse(MILES>0,se.MILES/MILES,NA))
 
 
 tripsTM$MONTH=as.numeric(tripsTM$month)
@@ -163,9 +159,7 @@ tripsTMPS$value[is.na(tripsTMPS$value)]=0
 
 #Cleaning up and naming variables in dataset
 tripsTMPS=subset(tripsTMPS,select=-c(YEAR,MONTH,variable,moe,fips,ST))
-names(tripsTMPS)=c("Year","Month","Mode","Trips","Trips_se","Hrsf","Party","Miles",
-                   "Hrsf_se","Party_se","Miles_se",
-                   "Trips_pse","Hrsf_pse","Party_pse","Miles_pse",
+names(tripsTMPS)=c("Year","Month","Mode","Obs","Trips","Hrsf","Party","Miles","Htvl",
                    "FIPS","State","Population","Stringency")
 
 #Trips per capita
@@ -762,7 +756,7 @@ plot(y=cdm$pred,x=cdm$Stringency,type="l",ylim=c(20,70),
 lines(y=cdm$LCB0.025,x=cdm$Stringency,lty=2)
 lines(y=cdm$UCB0.975,x=cdm$Stringency,lty=2)
 
-plot(y=sdm$pred,x=sdm$Stringency,type="l",ylim=c(-1,1),
+plot(y=sdm$pred,x=sdm$Stringency,type="l",ylim=c(20,70),
      main="Shore",
      xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
      ylab="Mean Distance Traveled (Scaled to June in FL)")
