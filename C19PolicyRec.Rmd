@@ -260,12 +260,11 @@ peak month. The black line provides a simple average of these relative values ac
 the 16 states within each month, so that the black line represents the composite
 national-level seasonality trend in fishing trips among these 16 states. July is
 both the modal peak month among the states, and the peak month for the national 
-trend. There are many state-months in which 0 trips occur,^[or at least no trips
-are recorded by MRIP, need to point to the data documentation here] and in 
-particular there are only 4 states with positive trips in January: Florida (with
- of trips occurring in January), North Carolina (37%), Alabama (27%), and
-Mississippi (21%).^[why does South Carolina have 0 trips if North Carolina has 
-positive trips and the ostensible explanation for the 0 trips is cold??]
+trend. There are many state-months in which 0 trips are recorded,^[The [MRIP Data 
+User Handbook](https://media.fisheries.noaa.gov/2021-09/MRIP%20Data%20User%20Handbook%20Updated%202021-09-30.pdf) explains this in Table 1: many states are not sampled during January and February,
+and Maine is not sampled in March or April either. In the [MRIP Survey Design Manual](https://media.fisheries.noaa.gov/2021-09/MRIP-Survey-Design-and-Statistical-Methods-2021-09-15.pdf), Figure 6 shows the state-month's which do not have coverage in white, along with detail of the 2020 data quality for state-months which are covered. So these should *not* be considered "true zeros", but rather non-randomly missing data, as the state-months which are not covered are such due to the presumption of low fishing activity attributable to unfavorable weather.] and in 
+particular there are only 4 states with positive trips in January: Florida (with January trips equal to 43% of the peak value), North Carolina (37%), Alabama (27%), and
+Mississippi (21%).
 
 ```{r private-boat-trips-seasonality-plot2,echo=FALSE,warning=FALSE,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State, relative to annual total."}
 tripsTMPS %>%
