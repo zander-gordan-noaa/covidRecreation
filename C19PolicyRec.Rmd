@@ -180,13 +180,18 @@ tripsTMPS=readRDS("tripsTMPS.rds")
 
 ## Attempt 1
 
-Marine angling is a major outdoor activity in the US. According to the most recent Angler Expenditure Report, marine angling had a $XXXX impact on the US economy as a whole, and so and so report that Y% of US adults went on at least one marine angling trip in the past year. For  context, (Y+e)% of adults engaged in __some other outdoor activity__, while just under that amount participated in __another activity__.  Furthermore, aside from angling's importance as a source of outdoor recreation, some recreational fisheries are also substantial components of the broader fishery management system, particularly in the Southeastern US, where sportfishing can account for half or more of the harvest of certain commercially and culturally significant species such as Snappers, or Cod in the Northeast, Haddock in Alaska, etc.
+Marine angling is a major outdoor activity in the US. According to the most recent Marine Angler Expenditure Report by @lovell2020economic, expenditures on marine angling trips totaled $10.5B, and the 2019 Outdoor Participation Report from the Outdoor Foundation @2019OutdoorReport finds that 4.3% of Americans participated in saltwater fishing in 2018. For  context, that is comparable to 4.9% of Americans engaged in skiing and 2.9% participated in mountain biking, while the most common outdoor activities are running, with 19.2% of Americans participating, and fishing (fresh or saltwater) at 16.4%.  Furthermore, aside from angling's importance as a source of outdoor recreation, some recreational fisheries are also substantial components of the broader fishery management system, particularly in the Southeastern US, where sportfishing can account for substantial portions of the harvest of certain commercially and culturally significant species such as Snappers, or Cod in the Northeast, Halibut in Alaska, etc.
 The COVID-19 pandemic upended many aspects of life, along with the response to it, and so it is natural to wonder what is the impact of the pandemic and its policy response on US fisheries. While other research has inquired on the COVID impacts of outdoor recreation and angling more broadly, as well as saltwater angling impacts on things like license sales (As widely reported by the media), we are the first to look specifically at the impact of COVID-19 policy response on the overall level and type of fishing activity in the US across the nation . 
 There are several reasons to study the impact of COVID-19 on marine sportfishing:
+
 1. Overall impact on fishing effort: if COVID-19 has increased (decreased) fishing effort in a persistent fashion, particularly for areas and modes of fishing with many species managed by ACL's, then management may need to respond by tightening (lengthening) seasons.
+
 2. New entrants: In addition to short-term changes in the level and kind of fishing activity, we are also interested in whether COVID may have induced new, and especially younger, participants to the fishery. This could potentially have more long term implications, if the longstanding trend of higher churn among younger fishing license holders (Southwick data dashboard) were to be overturned, and as a result more younger fishermen would become more avid and more skilled, potentially becoming long-term stakeholders in the fishery. It is probably not yet possible to assess this, as only time will tell, but it is important to look for early signs and be vigilant going forward.
+
 3. Changes in fishing motivation and satisfaction, which coincides with new entrants to the fishery and congestion effects.
+
 4. Generalizable lessons: COVID-19 catalyzed many other changes, in particular a shift toward remote work, an increase in labor bargaining power, and increased internal migration and business formation. These trends seem likely to persist beyond the end of the pandemic, and will have implications for all aspects of public management, with fisheries management being no exception. COVID impacts thus need to be understood not just as limited to the pandemic era, but as harbingers of things to come. 
+
 At the overall national level , COVID had a clear positive influence on fishing trips, with a total of XX trips reported by MRIP in 2019, compared to XX+e trips in 2020.
 
 ## Attempt 2
@@ -239,7 +244,7 @@ To these important considerations, we may also add:
 We assemble monthly observations from 2017-2020 for three different modes of fishing: private boats, charter boats, and shore. With `r length(unique(tripsTMPS$Year))` years, `r length(unique(tripsTMPS$Month))` months in each year and `r length(unique(tripsTMPS$State))` states, the data set for each mode has `r length(tripsTMPS$Trips[tripsTMPS$Mode==7])` observations. 
 
 The primary unit of measurement for our aggregated summary of the MRIP dataset is the angler-trip (hereafter abbreviated simply to trip), representing the total number of distinct trips multiplied by the average party size of those trips.
-We use the MRIP data for the states along the Gulf and Atlantic coasts in which it is available, a total of 16 states. (perhaps a map here would be useful? Could be color coded to have some useful summary statistics, even just as simple as the average per capita annual trips). The MRIP data files are maintained [here](https://www.fisheries.noaa.gov/recreational-fishing-data/recreational-fishing-data-downloads), we do not use the published wave-level estimates from the MRIP program, but rather use the publicly-available trip files to estimate total trips in each state-month, and additionally we use other information in those trip files to calculate the average hours fished per trip and average party size on charter and private trip modes, which are supplementary dependent variables for our analysis. Creating our own estimates also allows us to customize the estimates, and we choose to specifically create estimates of the number of trips taken by in-state residents
+We use the MRIP data for the states along the Gulf and Atlantic coasts in which it is available, a total of 16 states. (perhaps a map here would be useful? Could be color coded to have some useful summary statistics, even just as simple as the average per capita annual trips). The MRIP data files are maintained [here](https://www.fisheries.noaa.gov/recreational-fishing-data/recreational-fishing-data-downloads), we do not use the published wave-level estimates from the MRIP program, but rather use the publicly-available trip files to estimate total trips in each state-month, and additionally we use other information in those trip files to calculate the average hours fished per trip and average party size on charter and private trip modes, which are supplementary dependent variables for our analysis. Creating our own estimates also allows us to customize the estimates, and we choose to specifically create estimates of the number of trips taken by in-state residents.
 
 The MRIP program currently consists of 2 primary data collection efforts, the Fishing Effort Survey (FES), and the Access Point Angler Intercept Survey (APAIS). The FES is a mail survey which asks anglers to recall how many trips they have been on recently, in order to get information on the total amount of fishing going on. The APAIS is an in-person survey conducted at common fishing locations by field workers, and asks for information about the fishing trip they are on when surveyed, as well as sampling some of the fish they catch in order to get valid length information for the caught fish , as well as species composition. During 2020, the year in which our treatment occurs, the FES was able to continue unhindered, while the APAIS was suspended for at least some length of time pretty much everywhere in March and April 2020, with data collection resuming unevenly throughout the country in May and June (wave 3) according to local conditions (see Figure 6 of the MRIP survey design manual for more information here). Therefore, while the total trip estimates are available for all state-months in 2020 in the same fashion as in 2019 and earlier years, the supplementary information on average hours fished and party size has reduced availability, and accordingly the sample size for these regressions are reduced due to this missing data problem.^[furthermore, we should mention something about the PSE's, and refer to the paper on estimated dependent variables.]
 ( I should have a figure plotting the COVID stringency against a missing data indicator, or perhaps the missing data indicator as the outcome variable in a logistic regression, something to assess the likely fact that state months with more COVID stringency had greater missing data. Also, is this in fact correlated with actual COVID risk? I can't help but think that at a minimum, we should include two independent variables, with either estimated R, or cases per 100k, or some other measure of infection risk / transmission level, since I think it is definitely the case that there is substantial independent variation in these measures. )
@@ -268,6 +273,10 @@ mbms=merge(mbms,tpclt20,by=c("State","Mode"))
 #Ratio of the average trips per capita in 2020 to the average trips per capita in prior years by state and mode
 mbms$TPCdTPClt20=mbms$TPC/mbms$TPClt20
 mbms=mbms[order(mbms$Mode,mbms$State),]
+# add state abbreviations
+mbms <- mbms %>% 
+  left_join(fips_codes %>% select(state, state_name), 
+            by = c("State" = "state_name"))
 ```
 
 ```{r private-boat-trips-seasonality-plot,echo=FALSE,warning=FALSE,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the peak month. The bold line gives a simple average of these relative monthly values across the 16 states."}
@@ -298,6 +307,42 @@ and Maine is not sampled in March or April either. In the [MRIP Survey Design Ma
 particular there are only 4 states with positive trips in January: Florida (with January trips equal to 43% of the peak value), North Carolina (37%), Alabama (27%), and
 Mississippi (21%).
 
+```{r charter-boat-trips-seasonality-plot,echo=FALSE,warning=FALSE,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the peak month. The bold line gives a simple average of these relative monthly values across the 16 states."}
+tripsTMPS %>%
+  filter(Mode == 5 & Year == 2019) %>%
+  group_by(State) %>% 
+  mutate(relative_TPC = TPC / max(TPC)) %>% 
+  ggplot(aes(x=Month, y=relative_TPC, group=State)) +
+  geom_line(alpha = 0.08) +
+  stat_summary(mapping = aes(x=Month,  y=relative_TPC, group = 1), 
+               fun = "mean", 
+               geom = "line",
+               inherit.aes = FALSE) +
+  ylab("Trips (relative to peak trips)") +
+  ggtitle("Charter Boats")
+```
+
+```{r shore-trips-seasonality-plot,echo=FALSE,warning=FALSE,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the peak month. The bold line gives a simple average of these relative monthly values across the 16 states."}
+tripsTMPS %>%
+  filter(Mode == 3 & Year == 2019) %>%
+  group_by(State) %>% 
+  mutate(relative_TPC = TPC / max(TPC)) %>% 
+  ggplot(aes(x=Month, y=relative_TPC, group=State)) +
+  geom_line(alpha = 0.08) +
+  stat_summary(mapping = aes(x=Month,  y=relative_TPC, group = 1), 
+               fun = "mean", 
+               geom = "line",
+               inherit.aes = FALSE) +
+  ylab("Trips (relative to peak trips)") +
+  ggtitle("Shore")
+```
+
+Figures \@ref(fig:charter-boat-trips-seasonality-plot) and
+\@ref(fig:shore-trips-seasonality-plot) replicate Figure 
+\@ref(fig:private-boat-trips-seasonality-plot), but for charter and shore mode
+trips, respectively.
+
+
 ```{r private-boat-trips-seasonality-plot2,echo=FALSE,warning=FALSE,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State, relative to annual total."}
 tripsTMPS %>%
   filter(Mode == 7 & Year == 2019) %>%
@@ -323,21 +368,27 @@ state-months with more than 20% of annual trips come from the Northern states of
 Maine, New Hampshire, Massachusetts, Delaware and Rhode Island, with July in 
 Mississippi as the exception.
 
-```{r pTrips,echo=FALSE,warning=FALSE,fig.cap="2020 Monthly Marine Sportfishing Trips per Capita by State",fig.height=6,fig.width=5,fig.align='center'}
-tripsTMPS %>%
-  filter(Mode == 5 & Year > 2019) %>%
-  ggplot( aes(x=Month,y=TPC, group=State, color=State)) +
-  geom_line() + 
-  ylab("Trips per capita") +
-  ggtitle("Charter Boats")
-
-tripsTMPS %>%
-  filter(Mode == 3 & Year > 2019) %>%
-  ggplot( aes(x=Month,y=TPC, group=State, color=State)) +
-  geom_line() + 
-  ylab("Trips per capita") +
-  ggtitle("Shore")
+```{r COVID-stringency-phillips-curve-FL,echo=FALSE,warning=FALSE,fig.cap="COVID Stringency vs relative fishing trips over time for Florida, private mode. Each label on the figure plots values for a single month, with sequential months connected by the path. The y-axis values are the trips for the month in 2020, divided by the average trips in that month from 2017 through 2019.",fig.height=6,fig.width=5,fig.align='center'}
+tripsTMPS %>% 
+  filter(Mode == 7) %>% 
+  group_by(State, Month) %>% 
+  arrange(Year, .by_group = TRUE) %>% 
+  mutate(trip_ratio = case_when(Year == 2020 ~ Trips / mean(Trips[1:3]))) %>% 
+  ungroup() %>% 
+  arrange(Month) %>% 
+  filter(State == "Florida", Year==2020) %>% 
+  ggplot(aes(x = Stringency, y = trip_ratio, label = Month)) +
+  ylab("Trip Ratio (2020:2017-19)") +
+  geom_path() +
+  geom_label()
 ```
+
+Figure \@ref(fig:COVID-stringency-phillips-curve-FL) shows the comovement of
+COVID Stringency and relative fishing activity for the state of Florida over the course of
+2020. With the notable exception of February to March, most of the month-to-month
+changes exhibit a downward slope. Note that Florida was chosen for this exhibit because it is the
+only state with sufficient fishing activity throughout the entire year to create
+these ratios for all 12 months of the year.
 
 ```{r pString,echo=FALSE,warning=FALSE,fig.cap="Monthly 2020 stringency Index by State",fig.height=6,fig.width=5,fig.align='center'}
 tripsTMPS %>% 
@@ -345,31 +396,33 @@ tripsTMPS %>%
   ggplot( aes(x=Month,y=Stringency, group=State, color=State)) +
   geom_line() + 
   ylab("stringency")
-
 ```
 
-```{r tripsVstring,echo=FALSE,warning=FALSE,fig.cap="Average Trips per Capita versus Covid-19 Policy Stringency",fig.height=6,fig.width=5,fig.align='center'}
+
+
+
+```{r tripsVstring,echo=FALSE,warning=FALSE,fig.cap="Average Trips per Capita versus Covid-19 Policy Stringency",fig.height=5,fig.width=6,fig.align='center'}
 
 with(subset(mbms,Mode==7),
      plot(TPCdTPClt20 ~Stringency,pch=NA,main="Private Boats",xlim=c(1000,2000),
           ylab="Trips per Capita Ratio",xlab="Covid-19 Policy Stringency"))
 with(subset(mbms,Mode==7 ),
      text(TPCdTPClt20 ~Stringency,font=2,cex=0.75,
-          labels=State[Mode==7 ]))
+          labels=state[Mode==7 ]))
 
 with(subset(mbms,Mode==5 ),
      plot(TPCdTPClt20 ~Stringency,pch=NA,main="Charter Boats",xlim=c(1000,2000),
           ylab="Trips per Capita Ratio",xlab="Covid-19 Policy Stringency"))
 with(subset(mbms,Mode==5 ),
      text(TPCdTPClt20 ~Stringency,font=2,cex=0.75,
-          labels=State[Mode==5 ]))
+          labels=state[Mode==5 ]))
 
 with(subset(mbms,Mode==3 ),
      plot(TPCdTPClt20 ~Stringency,pch=NA,main="Shore",xlim=c(1000,2000),
           ylab="Trips per Capita Ratio",xlab="Covid-19 Policy Stringency"))
 with(subset(mbms,Mode==3 ),
      text(TPCdTPClt20 ~Stringency,font=2,cex=0.75,
-          labels=State[Mode==3 ]))
+          labels=state[Mode==3 ]))
 
 ```
 
@@ -505,21 +558,21 @@ par(mfrow=c(3,1))
 
 plot(y=pd$pred/1000000,x=pd$Stringency,type="l",ylim=c(2,5),
      main="Private Boats",
-     xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
+     xlab="Stringency Index (Monthly sum of daily records: higher is more stringent)",
      ylab="Millions of Fishing Trips (Scaled to June in FL)")
 lines(y=pd$LCB0.025/1000000,x=pd$Stringency,lty=2)
 lines(y=pd$UCB0.975/1000000,x=pd$Stringency,lty=2)
 
 plot(y=cd$pred/1000000,x=cd$Stringency,type="l",ylim=c(.04,.09),
      main="Charter Boats",
-     xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
+     xlab="Stringency Index (Monthly sum of daily records: higher is more stringent)",
      ylab="Millions of Fishing Trips (Scaled to June in FL)")
 lines(y=cd$LCB0.025/1000000,x=cd$Stringency,lty=2)
 lines(y=cd$UCB0.975/1000000,x=cd$Stringency,lty=2)
 
 plot(y=sd$pred/1000000,x=sd$Stringency,type="l",ylim=c(3,7),
      main="Shore",
-     xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
+     xlab="Stringency Index (Monthly sum of daily records: higher is more stringent)",
      ylab="Millions of Fishing Trips (Scaled to June in FL)")
 lines(y=sd$LCB0.025/1000000,x=sd$Stringency,lty=2)
 lines(y=sd$UCB0.975/1000000,x=sd$Stringency,lty=2)
@@ -615,21 +668,21 @@ par(mfrow=c(3,1))
 
 plot(y=pdh$pred,x=pdh$Stringency,type="l",ylim=c(3.5,5.5),
      main="Private Boats",
-     xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
+     xlab="Stringency Index (Monthly sum of daily records: higher is more stringent)",
      ylab="Mean Hours Fished (Scaled to June in FL)")
 lines(y=pdh$LCB0.025,x=pdh$Stringency,lty=2)
 lines(y=pdh$UCB0.975,x=pdh$Stringency,lty=2)
 
 plot(y=cdh$pred,x=cdh$Stringency,type="l",ylim=c(3,7),
      main="Charter Boats",
-     xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
+     xlab="Stringency Index (Monthly sum of daily records: higher is more stringent)",
      ylab="Mean Hours Fished (Scaled to June in FL)")
 lines(y=cdh$LCB0.025,x=cdh$Stringency,lty=2)
 lines(y=cdh$UCB0.975,x=cdh$Stringency,lty=2)
 
 plot(y=sdh$pred,x=sdh$Stringency,type="l",ylim=c(3,5.5),
      main="Shore",
-     xlab="Stringincy Index (Monthly sum of daily records: higher is more stringent)",
+     xlab="Stringency Index (Monthly sum of daily records: higher is more stringent)",
      ylab="Mean Hours Fished (Scaled to June in FL)")
 lines(y=sdh$LCB0.025,x=sdh$Stringency,lty=2)
 lines(y=sdh$UCB0.975,x=sdh$Stringency,lty=2)
@@ -815,3 +868,7 @@ par(mfrow=c(1,1))
 
 
 # References {#references .unnumbered}
+
+<div id="refs"></div>
+
+# Appendix
