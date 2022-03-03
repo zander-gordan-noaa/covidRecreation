@@ -497,9 +497,11 @@ How to interpret this is an open question. It is commonly reported that angling 
 #   pack_rows("Stringency", 10, 12)
 
 library(vtable)
-st(tripsTMPS %>% filter(Mode == 7) %>% select("Trips","Hrsf","Party","Stringency"),
-   #group = 'Mode', group.test = FALSE,group.long = TRUE,
-   title="Summary Statistics for Key Variables",
+st(tripsTMPS %>% 
+     mutate(Mode = recode(Mode, `3` = "Shore", `5` = "Charter", `7` = "Private")) %>% 
+     select("Trips","Hrsf","Party","Stringency", "Mode"),
+   group = 'Mode', group.test = FALSE,group.long = TRUE,
+   title="Summary Statistics for Key Variables, by Mode",
    out="latex")
 
 ```
@@ -521,15 +523,15 @@ sm=glm(mf,data=tripsTMPS,family = quasipoisson,subset=Mode==3 )
 
 staten=gsub("State","",names(coef(pm)))[2:16]
 
-texreg(list(pm),custom.model.names = c("Private"),single.row = FALSE,digits=3,label="regResults",
-       caption = "Quasi-Poisson Fixed Effect Regression of Trips on Covid-19 Stringency",
+texreg(list(pm,cm,sm),custom.model.names = c("Private","Charter","Shore"),single.row = FALSE,digits=3,label="regResults",
+       caption = "Quasi-Poisson Fixed Effect Regression of Trips on Covid-19 Stringency, by Mode",
        #custom.coef.names = c("Intercept",staten,month.name[-1],
        #                       "Stringency/100","(Stringency/100)^2"),
        custom.coef.map=list("(Intercept)" = "Intercept",
                             "I(Stringency/100)"="Stringency/100","I((Stringency/100)^2)"="(Stringency/100)^2"),
        include.aic=FALSE,include.bic=FALSE,include.loglik=FALSE,caption.above = TRUE,
        custom.note = "%stars. The base state is Alabama and the base Month is January.",
-       custom.gof.rows = list("Scale" = c(summary(pm)$dispersion)))
+       custom.gof.rows = list("Scale" = c(summary(pm)$dispersion,summary(cm)$dispersion,summary(sm)$dispersion)))
 
 
 ```
@@ -611,37 +613,7 @@ If internal migration has increased, perhaps certain states in the Southeast nee
 
 <div id="refs"></div>
 
-# Appendix
 
-```{r sumSatOtherModes,echo=FALSE,warning=FALSE,results='asis',message=FALSE}
-
-st(tripsTMPS %>% 
-     mutate(Mode = recode(Mode, `3` = "Shore", `5` = "Charter", `7` = "Private")) %>% 
-     select("Trips","Hrsf","Party","Stringency", "Mode") %>% 
-     filter(Mode %in% c("Shore", "Charter")),
-   group = 'Mode', group.test = FALSE,group.long = TRUE,
-   title="Summary Statistics for Charter and Shore Modes",
-   out="latex")
-
-```
-
-
-```{r regTblOtherModes,echo=FALSE,warning=FALSE,results='asis'}
-
-staten=gsub("State","",names(coef(pm)))[2:16]
-
-texreg(list(cm,sm),custom.model.names = c("Charter","Shore"),single.row = FALSE,digits=3,label="regResults",
-       caption = "Quasi-Poisson Fixed Effect Regression of Trips on Covid-19 Stringency for Charter and Shore Modes",
-       #custom.coef.names = c("Intercept",staten,month.name[-1],
-       #                       "Stringency/100","(Stringency/100)^2"),
-       custom.coef.map=list("(Intercept)" = "Intercept",
-                            "I(Stringency/100)"="Stringency/100","I((Stringency/100)^2)"="(Stringency/100)^2"),
-       include.aic=FALSE,include.bic=FALSE,include.loglik=FALSE,caption.above = TRUE,
-       custom.note = "%stars. The base state is Alabama and the base Month is January.",
-       custom.gof.rows = list("Scale" = c(summary(cm)$dispersion,summary(sm)$dispersion)))
-
-
-```
 
 
 
