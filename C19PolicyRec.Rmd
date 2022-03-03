@@ -221,15 +221,67 @@ To these considerations, we may also add:
 
 ## Data
 
+To conduct our analysis, we construct a panel data set at the state-month level
+spanning 2017 through 2020 for 16 US states, by merging two primary data
+sources: (1) the Marine Recreational Information Program (MRIP), which provides
+the necessary angler survey data to construct monthly estimates of the fishing activity in
+each state, providing our dependent variable, and (2) the Oxford COVID
+Government Response Tracker (OxCGRT), which provides fine-grained (daily)
+variation in the level of COVID policy stringency in each of the US states,
+which we collapse to the monthly level to provide our key independent variable.
+Below, we describe in greater detail these two major data sources, as well as
+some supplementary data used in the analysis,  and our methodology for
+processing these data sources to produce our panel dataset.
+
 ### MRIP
 
-We assemble monthly observations from 2017-2020 for three different modes of fishing: private boats, charter boats, and shore. With `r length(unique(tripsTMPS$Year))` years, `r length(unique(tripsTMPS$Month))` months in each year and `r length(unique(tripsTMPS$State))` states, the data set for each mode has `r length(tripsTMPS$Trips[tripsTMPS$Mode==7])` observations. 
+The MRIP program oversees survey research to monitor the level of marine angling
+activity in a consistent fashion throughout US fisheries (we discuss the structure of
+these surveys in greater detail below). The primary unit of measurement for
+our aggregated summary of the MRIP dataset is the angler-trip (hereafter
+abbreviated simply to trip), representing the total number of distinct trips
+multiplied by the average party size of those trips.
 
-The primary unit of measurement for our aggregated summary of the MRIP dataset is the angler-trip (hereafter abbreviated simply to trip), representing the total number of distinct trips multiplied by the average party size of those trips.
-We use the MRIP data for the states along the Gulf and Atlantic coasts in which it is available, a total of 16 states. (perhaps a map here would be useful? Could be color coded to have some useful summary statistics, even just as simple as the average per capita annual trips). The MRIP data files are maintained [here](https://www.fisheries.noaa.gov/recreational-fishing-data/recreational-fishing-data-downloads), we do not use the published wave-level estimates from the MRIP program, but rather use the publicly-available trip files to estimate total trips in each state-month, and additionally we use other information in those trip files to calculate the average hours fished per trip and average party size on charter and private trip modes, which are supplementary dependent variables for our analysis. Creating our own estimates also allows us to customize the estimates, and we choose to specifically create estimates of the number of trips taken by in-state residents.
+We use the MRIP data for the 16 states along the Gulf and Atlantic coasts in which
+it is available. The MRIP program publishes estimates of
+fishing activity for 2-month periods referred to as waves, but rather than use
+these estimates we use the publicly-available microdata files^[The MRIP data
+files are maintained by NOAA fisheries at the following URL:
+https://www.fisheries.noaa.gov/recreational-fishing-data/recreational-fishing-data-downloads]
+to estimate total trips in each state-month, and additionally we use other
+information in those trip files to calculate the average hours fished per trip
+and average party size on charter and private trip modes, which are
+supplementary dependent variables for our analysis. Creating our own estimates
+also allows us to customize the estimates, and we choose to specifically create
+estimates of the number of trips taken by in-state residents.
 
-The MRIP program currently consists of 2 primary data collection efforts, the Fishing Effort Survey (FES), and the Access Point Angler Intercept Survey (APAIS). The FES is a mail survey which asks anglers to recall how many trips they have been on recently, in order to get information on the total amount of fishing going on. The APAIS is an in-person survey conducted at common fishing locations by field workers, and asks for information about the fishing trip they are on when surveyed, as well as sampling some of the fish they catch in order to get valid length information for the caught fish , as well as species composition. During 2020, the year in which our treatment occurs, the FES was able to continue unhindered, while the APAIS was suspended for at least some length of time pretty much everywhere in March and April 2020, with data collection resuming unevenly throughout the country in May and June (wave 3) according to local conditions (see Figure 6 of the MRIP survey design manual for more information here). Therefore, while the total trip estimates are available for all state-months in 2020 in the same fashion as in 2019 and earlier years, the supplementary information on average hours fished and party size has reduced availability, and accordingly the sample size for these regressions are reduced due to this missing data problem.^[furthermore, we should mention something about the PSE's, and refer to the paper on estimated dependent variables.]
-( I should have a figure plotting the COVID stringency against a missing data indicator, or perhaps the missing data indicator as the outcome variable in a logistic regression, something to assess the likely fact that state months with more COVID stringency had greater missing data. Also, is this in fact correlated with actual COVID risk? I can't help but think that at a minimum, we should include two independent variables, with either estimated R, or cases per 100k, or some other measure of infection risk / transmission level, since I think it is definitely the case that there is substantial independent variation in these measures. )
+We assemble monthly observations from 2017-2020 for three different modes of
+fishing: private boats, charter boats, and shore. With `r
+length(unique(tripsTMPS$Year))` years, `r length(unique(tripsTMPS$Month))`
+months in each year and `r length(unique(tripsTMPS$State))` states, the data set
+for each mode has `r length(tripsTMPS$Trips[tripsTMPS$Mode==7])` observations.
+
+The MRIP program currently consists of 2 primary data collection efforts, the
+Fishing Effort Survey (FES), and the Access Point Angler Intercept Survey
+(APAIS). The FES is a mail survey which asks anglers to recall how many trips
+they have been on recently, in order to get information on the total level of
+fishing activity. The APAIS is an in-person survey conducted at common fishing
+locations by field workers, and asks for information about the fishing trip they
+are on when surveyed, as well as sampling some of the fish they catch in order
+to get valid length information for the caught fish , as well as species
+composition. During 2020, the year in which our treatment occurs, the FES was
+able to continue unhindered, while the APAIS was suspended for at least some
+length of time pretty much everywhere in March and April 2020, with data
+collection resuming unevenly throughout the country in May and June (wave 3)
+according to local conditions^[see Figure 6 of the MRIP survey design manual for
+more information on which states resumed data collection at which times:
+https://media.fisheries.noaa.gov/2021-09/MRIP-Survey-Design-and-Statistical-Methods-2021-09-15.pdf].
+Therefore, while the total trip estimates are available for all state-months in
+2020 in the same fashion as in 2019 and earlier years, the supplementary
+information on average hours fished and party size has reduced availability, and
+accordingly the sample size for these regressions are reduced due to this
+missing data problem.
+
 
 ### COVID Stringency Index
 
@@ -240,10 +292,12 @@ We take the daily level data for each state and collapse it to a state-month lev
 ### Supplementary Data
 
 In order to make the MRIP data on a comparable basis across states, we calculate
-per capita trip level using annual population estimates for each state bordering the Atlantic and Gulf of Mexico. For 2017-2019, these are estimates from the American Community Survey,
-and for 2020 we use figures from the Decennial Census.
+per capita trip level using annual population estimates for each state bordering
+the Atlantic and Gulf of Mexico. For 2017-2019, these are estimates from the
+American Community Survey, and for 2020 we use figures from the Decennial
+Census.
 
-
+### Descriptive Statistics
 
 ```{r, echo=FALSE,warning=FALSE}
 tpclt20=aggregate(TPC~State+Mode,FUN=mean,data=tripsTMPS,subset=Year<2020)
@@ -413,6 +467,8 @@ with(subset(mbms,Mode==3 ),
 ## Modeling Approach
 
 Quasi-poisson regression estimated with mean equal to $exp(pop)*exp(xb)$ and variance equal to $scale*mean$.
+
+
 
 # Results
 
