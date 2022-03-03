@@ -178,13 +178,11 @@ tripsTMPS=readRDS("tripsTMPS.rds")
 
 # Introduction
 
-## Attempt 1
-
 Marine angling is a major outdoor activity in the US. According to the most recent Marine Angler Expenditure Report by @lovell2020economic, expenditures on marine angling trips totaled $10.5B, and the 2019 Outdoor Participation Report from the Outdoor Foundation @2019OutdoorReport finds that 4.3% of Americans participated in saltwater fishing in 2018. For  context, that is comparable to 4.9% of Americans engaged in skiing and 2.9% participated in mountain biking, while the most common outdoor activities are running, with 19.2% of Americans participating, and fishing (fresh or saltwater) at 16.4%.  Furthermore, aside from angling's importance as a source of outdoor recreation, some recreational fisheries are also substantial components of the broader fishery management system, particularly in the Southeastern US, where sportfishing can account for substantial portions of the harvest of certain commercially and culturally significant species such as reef fish species in the Gulf of Mexico.
 
 The COVID-19 pandemic and ensuing public (and private) policy responses had far-reaching social and economic impacts, and marine angling is no exception. While other research has investigated the impacts of COVID on outdoor recreation @landry2021has and angling @midway2021covid more broadly, we are the first to look specifically at the impact of COVID and COVID policy on the overall level and kind of marine angling activity in the US.
 
-There are several reasons to study the impact of COVID-19 on marine angling:
+At a broad level, there are several reasons to study the impact of COVID-19 on marine angling:
 
 1. Overall impact on fishing effort: if COVID-19 has increased (decreased) fishing effort in a persistent fashion, particularly for areas and modes of fishing with many species managed by ACL's, then management may need to respond by tightening (lengthening) seasons.
 
@@ -194,28 +192,10 @@ There are several reasons to study the impact of COVID-19 on marine angling:
 
 4. Generalizable lessons: COVID-19 catalyzed many other socio-economic changes, in particular a shift toward remote work, increased internal migration and business formation, and possibly an increase in labor bargaining power. These trends seem likely to persist beyond the end of the pandemic, and will have implications for all aspects of public management, with fisheries management being no exception. COVID impacts thus need to be understood not just as limited to the pandemic era, but as harbingers of things to come. 
 
-At the overall national level, COVID had a clear positive influence on fishing trips, with a total of XX trips reported by MRIP in 2019, compared to XX+e trips in 2020.
-
-## Attempt 2
-
-Fishery managers are forced to make challenging trade-offs amid substantial uncertainty, and are used to doing so, but the levels of uncertainty induced by the COVID-19 pandemic set a new bar even for this enterprise which is so accustomed to uncertainty. 
-Recreational fisheries in particular were subject to a litany of influences , including closure of sites, substantial internal migration of the US population, and unprecedented, overnight tectonic shifts in the way Americans spend their time. 
-
-## Attempt 3
-
-This paper investigates the relationship between marine fishing trips and COVID 19 policy stringency. It has been largely understood that COVID 19 exerted a positive influence on outdoor recreation activity generally, and angling in particular. Indeed, the aggregate statistics for 2020 compared to prior years bear this theory out. However, the pandemic ushered in a complex tangle of causal pathways, including some which dampened fishing activity, and catalyzed a broad range of social changes, many of which will persist well into the future. It is thus necessary to understand in greater detail the individual factors and causal pathways through which the pandemic bump in fishing activity operated if we wish to obtain general insights which can inform fisheries management going forward. 
-Why does COVID policy matter ? Why does our finding that high covid policy actually dampened fishing matter? It shows that closures and fear of COVID had a meaningful negative impact, and perhaps also that relocation of individuals from high to low stringency states played a role. The first 2 of these hopefully do not matter much now that the pandemic is presumably in the rear view, and we are unlikely to face such an event again in the near future. The relocation point would matter much more, although it is a bit more speculative. Lost in all of this is what all this means for welfare, the benefits of each trip, and whether the pandemic moved us closer or further from OY.
-Having written all this, let us now turn again to the eternal question: what are the policy implications??
-If internal migration has increased, perhaps certain states in the Southeast need to take account of increased fishing pressure, while other states can ease off of their attempts to constrain effort. If increases in congestion have effectively increased the cost of trips, then perhaps angler welfare per trip is reduced, which on a naive interpretation would mean that their allocation of quota should be reduced, although the other way to look at that is that it points to an increased need for flexibility in disposition of catch privileges. In other words, if boat ramp congestion due to increased boating activity (non-fishing related) is negatively affecting anglers an eating into the value of trip, anglers may be better off being able to choose their own seasons to adapt to their local conditions, which they will be able to do better than a central planner. 
+In this paper, we focus on the first item. In particular, we investigate the relationship between marine fishing trips and COVID 19 policy stringency. It has been largely understood that COVID 19 exerted a positive influence on outdoor recreation activity generally, and angling in particular. However, the pandemic ushered in a complex tangle of causal pathways, including some which dampened fishing activity, and catalyzed a broad range of social changes, many of which will persist well into the future. It is thus necessary to understand in greater detail the individual factors and causal pathways through which the pandemic bump in fishing activity operated if we wish to obtain general insights which can inform fisheries management going forward.
 
 
-
-
-
-* Intro to C-19 and the anecdotal evidence related to C-19 and recreation
-* Literature review
-* Research question: How do outdoor recreation levels change as governments institute policies to protect public health during a pandemic?
-* Approach: variation in state stringency policies to describe the relationship between C-19 and sportfishing levels
+# Background
 
 Landry et al (2021) provide a useful summary of potential causal pathways through which COVID-19, and the policy response to it, may affect outdoor recreation generally, which we adapt here for the specific instance of angling:
 
@@ -227,7 +207,7 @@ Landry et al (2021) provide a useful summary of potential causal pathways throug
 
 4.Decreased availability of substitute leisure activities, especially indoor activities, which may have made angling relatively more attractive as a way to spend one's leisure time.
 
-To these important considerations, we may also add:
+To these considerations, we may also add:
 
 5. Relocation, as it is known both from census data and cell phone location data that internal migration in the US picked up substantially during the pandemic, and it is likely that the Southeastern states in our sample saw an uptick in population, while the northern states (at least some of them) like Massachusetts may have seen a decrease in their population. Considering that anglers are people who are very sensitive to location, site quality, etc. this may be particularly salient for them, and the rate of internal migration for anglers may be even higher than for the general population (ooh, this is a good question for the NSAR data).
 
@@ -441,6 +421,11 @@ Our results represent a composite effect of the actual local COVID policies, as 
 Overall, our moderate results for the relationship between COVID policy stringency and total angler-trips taken, combined with the null results for relationship with changes in tripp attributes like hours fished and party size, suggests that fishing activity (marine fishing activity) was actually rather stable throughout 2020, in comparison with other socioeconomic indicators like unemployment, GDP, etc. which saw 3-sigma or 4-sigma changes, sometimes the largest month-to-month changes since these statistics have been recorded.
 This is to some degree consistent with another study, which conducted a nation-wide survey using the license frames from multiple states of both freshwater and saltwater anglers, and found that among the survey respondents, the modal response to the question "How has CVOID most impacted your life" was "No effect", followed by "stress". This suggests that anglers are perhaps less affected by COVID than the general population, which is known to have experienced record-levels of stress and anxiety during the COVID pandemic, according to research including a nationally-representative survey on mental health published in Science.
 How to interpret this is an open question. It is commonly reported that angling is a relaxing activity, which many people do for solace from the world ("the contemplative man’s recreation"), and so perhaps it is the case that the kind of person who goes fishing is simply less affected by the pandemic. It may also reflect other correlations, such as occupational composition, if it is the case that anglers tend to have jobs which were less affected by the pandemic, or political correlations, if anglers happen to be more conservative / less inclined to believe that the pandemic was a cause to change their behavior. 
+
+## Discussion
+
+Having written all this, let us now turn again to the eternal question: what are the policy implications??
+If internal migration has increased, perhaps certain states in the Southeast need to take account of increased fishing pressure, while other states can ease off of their attempts to constrain effort. If increases in congestion have effectively increased the cost of trips, then perhaps angler welfare per trip is reduced, which on a naive interpretation would mean that their allocation of quota should be reduced, although the other way to look at that is that it points to an increased need for flexibility in disposition of catch privileges. In other words, if boat ramp congestion due to increased boating activity (non-fishing related) is negatively affecting anglers and eating into the value of trip, anglers may be better off being able to choose their own seasons to adapt to their local conditions, which they will be able to do better than a central planner. 
 
 
 ```{r sumSat,echo=FALSE,warning=FALSE,results='asis',message=FALSE}
