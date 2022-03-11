@@ -248,16 +248,13 @@ fishing activity for 2-month periods referred to as waves, but rather than use
 these estimates we use the publicly-available microdata files^[The MRIP data
 files are maintained by NOAA fisheries at the following URL:
 https://www.fisheries.noaa.gov/recreational-fishing-data/recreational-fishing-data-downloads]
-to estimate total trips in each state-month, and additionally we use other
-information in those trip files to calculate the average hours fished per trip
-and average party size on charter and private trip modes, which are
-supplementary dependent variables for our analysis. Creating our own estimates
+to estimate total trips in each state-month. Creating our own estimates
 also allows us to customize the estimates, and we choose to specifically create
 estimates of the number of trips taken by in-state residents.
 
 We assemble monthly observations from 2017-2020 for three different modes of
-fishing: private boats, charter boats, and shore. With `r
-length(unique(tripsTMPS$Year))` years, `r length(unique(tripsTMPS$Month))`
+fishing: private boats, charter boats, and shore. With `r length(unique(tripsTMPS$Year))` 
+years, `r length(unique(tripsTMPS$Month))`
 months in each year and `r length(unique(tripsTMPS$State))` states, the data set
 for each mode has `r length(tripsTMPS$Trips[tripsTMPS$Mode==7])` observations.
 
@@ -271,16 +268,19 @@ are on when surveyed, as well as sampling some of the fish they catch in order
 to get valid length information for the caught fish , as well as species
 composition. During 2020, the year in which our treatment occurs, the FES was
 able to continue unhindered, while the APAIS was suspended for at least some
-length of time pretty much everywhere in March and April 2020, with data
+length of time nationwide in March and April 2020, with data
 collection resuming unevenly throughout the country in May and June (wave 3)
 according to local conditions^[see Figure 6 of the MRIP survey design manual for
 more information on which states resumed data collection at which times:
 https://media.fisheries.noaa.gov/2021-09/MRIP-Survey-Design-and-Statistical-Methods-2021-09-15.pdf].
-Therefore, while the total trip estimates are available for all state-months in
-2020 in the same fashion as in 2019 and earlier years, the supplementary
-information on average hours fished and party size has reduced availability, and
-accordingly the sample size for these regressions are reduced due to this
-missing data problem.
+We are able to construct the total trip estimates are available for all state-months in
+2020 in the same fashion as in 2019 and earlier years, since the FES was able to
+continue unhindered. However, other outcome variables which might have been investigated,
+such as the average party size on a fishing trip, are affected by the APAIS suspension
+and can not be estimated for many
+state-months in early 2020, which is when the largest changes in COVID-19 
+policy stringency occur, and therefore we can not examine the relationship
+between policy stringency and these outcomes due to intractable missing data problems.
 
 
 ### COVID Stringency Index
@@ -437,30 +437,6 @@ tripsTMPS %>%
 
 
 
-```{r tripsVstring,echo=FALSE,warning=FALSE,fig.cap="Average Trips per Capita versus Covid-19 Policy Stringency",fig.height=5,fig.width=6,fig.align='center'}
-
-with(subset(mbms,Mode==7),
-     plot(TPCdTPClt20 ~Stringency,pch=NA,main="Private Boats",xlim=c(1000,2000),
-          ylab="Trips per Capita Ratio",xlab="Covid-19 Policy Stringency"))
-with(subset(mbms,Mode==7 ),
-     text(TPCdTPClt20 ~Stringency,font=2,cex=0.75,
-          labels=state[Mode==7 ]))
-
-with(subset(mbms,Mode==5 ),
-     plot(TPCdTPClt20 ~Stringency,pch=NA,main="Charter Boats",xlim=c(1000,2000),
-          ylab="Trips per Capita Ratio",xlab="Covid-19 Policy Stringency"))
-with(subset(mbms,Mode==5 ),
-     text(TPCdTPClt20 ~Stringency,font=2,cex=0.75,
-          labels=state[Mode==5 ]))
-
-with(subset(mbms,Mode==3 ),
-     plot(TPCdTPClt20 ~Stringency,pch=NA,main="Shore",xlim=c(1000,2000),
-          ylab="Trips per Capita Ratio",xlab="Covid-19 Policy Stringency"))
-with(subset(mbms,Mode==3 ),
-     text(TPCdTPClt20 ~Stringency,font=2,cex=0.75,
-          labels=state[Mode==3 ]))
-
-```
 
 
 
@@ -474,9 +450,7 @@ Quasi-poisson regression estimated with mean equal to $exp(pop)*exp(xb)$ and var
 
 Our results represent a composite effect of the actual local COVID policies, as well as localized attitudes, risk tolerances, and beliefs about COVID-19 which are correlated with COVID stringency. In particular, we see the inverse-U relationship we find to be the outcome of 2 countervailing pathways (laid out in the background section), (1) stringency reduces available substitutes of indoor or high-density outdoor activities, increasing the attractiveness of fishing, which is the dominant force on the low-stringency side of the curve, and (2) COVID risk makes even a relatively distanced activity, such as fishing, less appealing compared to entirely in-home activities such as cooking, backyard games, video games, etc., which is the dominating force on the high-stringency side of the curve.
 
-Overall, our moderate results for the relationship between COVID policy stringency and total angler-trips taken, combined with the null results for relationship with changes in tripp attributes like hours fished and party size, suggests that fishing activity (marine fishing activity) was actually rather stable throughout 2020, in comparison with other socioeconomic indicators like unemployment, GDP, etc. which saw 3-sigma or 4-sigma changes, sometimes the largest month-to-month changes since these statistics have been recorded.
-This is to some degree consistent with another study, which conducted a nation-wide survey using the license frames from multiple states of both freshwater and saltwater anglers, and found that among the survey respondents, the modal response to the question "How has CVOID most impacted your life" was "No effect", followed by "stress". This suggests that anglers are perhaps less affected by COVID than the general population, which is known to have experienced record-levels of stress and anxiety during the COVID pandemic, according to research including a nationally-representative survey on mental health published in Science.
-How to interpret this is an open question. It is commonly reported that angling is a relaxing activity, which many people do for solace from the world ("the contemplative man’s recreation"), and so perhaps it is the case that the kind of person who goes fishing is simply less affected by the pandemic. It may also reflect other correlations, such as occupational composition, if it is the case that anglers tend to have jobs which were less affected by the pandemic, or political correlations, if anglers happen to be more conservative / less inclined to believe that the pandemic was a cause to change their behavior. 
+
 
 
 
@@ -605,7 +579,11 @@ par(mfrow=c(1,1))
 
 ## Discussion
 
-Having written all this, let us now turn again to the eternal question: what are the policy implications??
+Overall, our moderate results for the relationship between COVID policy stringency and total angler-trips taken suggest that marine fishing activity was actually relatively stable throughout 2020, in comparison with other socioeconomic indicators like unemployment, GDP, etc. which saw 3- or 4-sigma changes, sometimes the largest month-to-month changes since these statistics have been recorded.
+This is to some degree consistent with another study @midway2021covid, which conducted a nation-wide survey using the license frames from multiple states of both freshwater and saltwater anglers, and found that among the survey respondents, the modal response to the question "How has CVOID most impacted your life" was "No effect", followed by "stress" (Figure 2, panel b in the paper). This suggests that anglers are perhaps less affected by COVID than the general population, which is known to have experienced record-levels of stress and anxiety during the COVID pandemic, according to research including a nationally-representative survey on mental health published in Science @holman2020unfolding.
+How to interpret this is an open question. It is commonly reported that angling is a relaxing activity, which many people do for solace from the world ("the contemplative man’s recreation"), and so perhaps it is the case that the kind of person who goes fishing is simply less affected by the pandemic. It may also reflect other correlations, such as occupational composition, if it is the case that anglers tend to have jobs which were less affected by the pandemic, or political correlations, if anglers happen to be more conservative / less inclined to believe that the pandemic was a cause to change their behavior. 
+
+In regards to policy implications, our results may be interpreted in a few ways.
 If internal migration has increased, perhaps certain states in the Southeast need to take account of increased fishing pressure, while other states can ease off of their attempts to constrain effort. If increases in congestion have effectively increased the cost of trips, then perhaps angler welfare per trip is reduced, which on a naive interpretation would mean that their allocation of quota should be reduced, although the other way to look at that is that it points to an increased need for flexibility in disposition of catch privileges. In other words, if boat ramp congestion due to increased boating activity (non-fishing related) is negatively affecting anglers and eating into the value of trip, anglers may be better off being able to choose their own seasons to adapt to their local conditions, which they will be able to do better than a central planner. 
 
 
