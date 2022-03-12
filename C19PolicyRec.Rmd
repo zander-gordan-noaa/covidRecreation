@@ -442,7 +442,23 @@ tripsTMPS %>%
 
 ## Modeling Approach
 
-Quasi-poisson regression estimated with mean equal to $exp(pop)*exp(xb)$ and variance equal to $scale*mean$.
+To model the relationship between the number of trips taken in each state-month
+and COVID policy stringency, we choose a Quasi-Poisson regression model. This
+choice of model accounts for the count nature of the outcome variable, number
+of trips taken, like a conventional Poisson model, but unlike a Poisson model it
+allows for over-dispersion of the data @VerHoef2007. Specifically, the conditional mean is 
+modeled as $\mu_i = \exp(pop_i)*\exp(x_i \beta)$, where $x_i$ is a vector of
+explanatory variables for state-month $i$, $\beta$ is a vector of slope coefficients
+to be estimated, and $pop_i$ is the population of state-month $i$; the variance
+is modeled as $\mu_i * \theta$, where $\theta > 1$ is a scalar parameter to be
+estimated which allows for the over-dispersion in the data and is also referred
+to a scale parameter. 
+
+In our specification, the vector $x_i$ includes 4 components: a linear term
+for the COVID stringency index, a quadratic term for the COVID stringency index,
+a set of state fixed effects to account for average differences in per capita
+fishing trips between the states, and a set of month fixed effects to account for
+the nation-wide average seasonality trend in fishing activity.
 
 
 
