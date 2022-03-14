@@ -427,17 +427,31 @@ only state with sufficient fishing activity throughout the entire year to create
 these ratios for all 12 months of the year.
 
 ```{r pString,echo=FALSE,warning=FALSE,fig.cap="Monthly 2020 stringency Index by State",fig.height=6,fig.width=5,fig.align='center'}
+covid_colors <- c("NY" = "red", "FL" = "blue", "AL" = "darkgreen", "other" = "grey")
+covid_alpha <- c("NY" = 1, "FL" = 1, "AL" = 1, "other" = 0.5)
 tripsTMPS %>% 
+  mutate(covid_cat = case_when(State == "New York" ~ "NY",
+                               State == "Florida" ~ "FL",
+                               State == "Alabama" ~ "AL",
+                               TRUE ~ "other")) %>% 
   filter(Year > 2019) %>%
-  ggplot( aes(x=Month,y=Stringency, group=State, color=State)) +
+  ggplot( aes(x=Month,y=Stringency, group=State, color=covid_cat, alpha=covid_cat)) +
   geom_line() + 
-  ylab("stringency")
+  ylab("stringency") + 
+  scale_color_manual(values = covid_colors, name = "States") +
+  scale_alpha_manual(values = covid_alpha, guide = "none")
 ```
 
-
-
-
-
+Figure \@ref(fig:pString) shows the evolution of COVID policy stringency over the
+course of 2020 for each of the 16 states in our analysis. Following the initial 
+uniform jumps in stringency during the March/April 2020 lockdowns, there is 
+substantial variation between the states in how COVID policy evolved. Here we have
+highlighted 3 states showing arch-typical cases: (1) New York, which had 
+consistently stringent COVID policy, (2) Alabama, where after April COVID policy was
+loosened substantially, and stayed loose, and (3) Florida, which displays the most
+variation in COVID policy over time. The substantial independent variation in these
+series affords the opportunity to examine the relationship between COVID policy
+stringency and fishing activity.
 
 
 ## Modeling Approach
@@ -458,13 +472,43 @@ In our specification, the vector $x_i$ includes 4 components: a linear term
 for the COVID stringency index, a quadratic term for the COVID stringency index,
 a set of state fixed effects to account for average differences in per capita
 fishing trips between the states, and a set of month fixed effects to account for
-the nation-wide average seasonality trend in fishing activity.
+the nation-wide average seasonality trend in fishing activity. 
 
 
 
 # Results
 
-Our results represent a composite effect of the actual local COVID policies, as well as localized attitudes, risk tolerances, and beliefs about COVID-19 which are correlated with COVID stringency. In particular, we see the inverse-U relationship we find to be the outcome of 2 countervailing pathways (laid out in the background section), (1) stringency reduces available substitutes of indoor or high-density outdoor activities, increasing the attractiveness of fishing, which is the dominant force on the low-stringency side of the curve, and (2) COVID risk makes even a relatively distanced activity, such as fishing, less appealing compared to entirely in-home activities such as cooking, backyard games, video games, etc., which is the dominating force on the high-stringency side of the curve.
+Table \@ref(regResults) and Figure \@ref(fig:tripStringRel) present the results of
+our estimated Quasi-Poisson regression model. A common trend is seen between
+each of the 3 fitted models for the different fishing modes: There is an 
+inverse-U relationship between COVID policy stringency and fishing trips, ie.
+the first order relationship is an increase in fishing trips at moderate levels 
+of policy stringency, with a second order effect dampening or even reversing
+this relationship at higher levels of stringency. These relationships are seen
+in the model coefficients presented in Table \@ref(regResults), which are significant
+at the 5% level for private and shore modes, but not for charter. 
+
+Figure \@ref(fig:tripStringRel)
+represents these same relationships graphically, by plotting the estimated
+model's predictions for the number of resident fishing trips that would occur in Florida
+in the month of June with a given level of COVID stringency. The solid line
+provides the point estimates for predicted trips, while the dotted lines plot
+the 95% confidence intervals around these predictions. Note that while we 
+present this relationship with the outcome scaled to the level of June in
+Florida, the shape of the relationship between stringency and fishing trips
+would be the same for any state-month combination.
+
+Our results represent a composite effect of the actual local COVID policies, as
+well as localized attitudes, risk tolerances, and beliefs about COVID-19 which
+are correlated with COVID stringency. In particular, we see the inverse-U
+relationship we find to be the outcome of 2 countervailing pathways (laid out in
+the background section), (1) stringency reduces available substitutes of indoor
+or high-density outdoor activities, increasing the attractiveness of fishing,
+which is the dominant force on the low-stringency side of the curve, and (2)
+COVID risk makes even a relatively distanced activity, such as fishing, less
+appealing compared to entirely in-home activities such as cooking, backyard
+games, video games, etc., which is the dominating force on the high-stringency
+side of the curve.
 
 
 
