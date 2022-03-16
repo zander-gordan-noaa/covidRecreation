@@ -339,10 +339,16 @@ Figures \@ref(fig:charter-boat-trips-seasonality-plot) and
 trips, respectively.
 
 
-```{r private-boat-trips-seasonality-plot2,echo=FALSE,warning=FALSE,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State, relative to annual total."}
+```{r trips-seasonality-plot,echo=FALSE,warning=FALSE,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State, relative to annual total. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the total annual trips for the state. The bold line gives a simple average of these relative monthly values across the 16 states."}
+mode_names <- c(
+                    `3` = "Shore Trips",
+                    `5` = "Charter Trips",
+                    `7` = "Private Trips"
+                    )
+
 tripsTMPS %>%
-  filter(Mode == 7 & Year == 2019) %>%
-  group_by(State) %>% 
+  filter(Year == 2019) %>%
+  group_by(State, Mode) %>% 
   mutate(relative_TPC = TPC / sum(TPC)) %>% 
   ggplot(aes(x=Month, y=relative_TPC, group=State)) +
   geom_line(alpha = 0.08) +
@@ -351,10 +357,10 @@ tripsTMPS %>%
                geom = "line",
                inherit.aes = FALSE) +
   ylab("Trips (as a fraction of annual total)") +
-  ggtitle("Private Boats")
+  facet_wrap(vars(Mode), scales = "free", nrow = 3, labeller = as_labeller(mode_names))
 ```
 
-Figure \@ref(fig:private-boat-trips-seasonality-plot2) shows the same curves as 
+Figure \@ref(fig:trips-seasonality-plot) shows the same curves as 
 in Figure \@ref(fig:private-boat-trips-seasonality-plot), but rescaled to show
 monthly values as a fraction of the annual total. This shows that fishing activity
 is in most states fairly broadly distributed from April through November, with 
