@@ -178,109 +178,73 @@ tripsTMPS=readRDS("tripsTMPS.rds")
 
 # Introduction
 
-Marine angling is a major outdoor activity in the US. According to the most recent Marine Angler Expenditure Report by @lovell2020economic, expenditures on marine angling trips totaled $10.5B, and the 2019 Outdoor Participation Report from the Outdoor Foundation @2019OutdoorReport finds that 4.3% of Americans participated in saltwater fishing in 2018. For  context, that is comparable to 4.9% of Americans engaged in skiing and 2.9% participated in mountain biking, while the most common outdoor activities are running, with 19.2% of Americans participating, and fishing (fresh or saltwater) at 16.4%.  Furthermore, aside from angling's importance as a source of outdoor recreation, some recreational fisheries are also substantial components of the broader fishery management system, particularly in the Southeastern US, where sportfishing can account for substantial portions of the harvest of certain commercially and culturally significant species such as reef fish species in the Gulf of Mexico.
+Saltwater angling is a major outdoor activity in the U.S. with expenditures on fishing trips on totaling more than $10 billion @lovell2020economic. Over 4% of Americans participate in saltwater fishing compared with around around 20% for running, the most common outdoor recreation activity @2019OutdoorReport.  Furthermore, in some marine fisheries, recreational angling is a substantial component of harvest, especially in the Southeastern US, where sportfishing can account for a large share commercially and culturally significant species @lewin2019potential.
 
-The COVID-19 pandemic and ensuing public (and private) policy responses had far-reaching social and economic impacts, and marine angling is no exception. While other research has investigated the impacts of COVID on outdoor recreation @landry2021has and angling @midway2021covid more broadly, we are the first to look specifically at the impact of COVID and COVID policy on the overall level and kind of marine angling activity in the US.
+The COVID-19 pandemic and ensuing policy responses had far-reaching social and economic implications, and marine angling is no exception. Landry et. al. @landry2021has provide a useful summary of potential causal pathways through which COVID-19, and the policy response to it, may affect outdoor recreation generally, which we adapt here for the specific instance of angling:
 
-At a broad level, there are several reasons to study the impact of COVID-19 on marine angling:
+1. Site closures may force anglers to cancel trips if, for example, a boat ramp or pier was closed @paradis2021can.
 
-1. Overall impact on fishing effort: if COVID-19 has increased (decreased) fishing effort in a persistent fashion, particularly for areas and modes of fishing with many species managed by ACL's, then management may need to respond by tightening (lengthening) seasons.
+2. Concern about infection risk, which may have led people to cancel planned trips, and cease to plan new trips @midway2021covid.
 
-2. New entrants: In addition to short-term changes in the level and kind of fishing activity, we are also interested in whether COVID may have induced new, and especially younger, participants to the fishery. This could potentially have more long term implications, if the longstanding trend of higher churn among younger fishing license holders^[This can be seen on a data dashboard maintained by the America Sportfishing Association, where for instance you can see that for Florida, the churn rate (% of license holders not renewing their prior year's license) for license holders below 35 years old has historically been notably higher than that for older participants, but this trend reversed in 2020, with the churn rate for the youngest participants decreasing from 67% to 37%, while the rate for the oldest participants increased slightly from around 50% to 53%: https://asafishing.org/data-dashboard/]  were to be overturned, and as a result more younger fishermen would become more avid and more skilled, potentially becoming long-term stakeholders in the fishery.
+3. An increase in leisure time, due to reduced commuting time and work-from-home, as well as increased unemployment @midway2021covid
 
-3. Changes in fishing motivation and satisfaction, which coincides with new entrants to the fishery and congestion effects.
+4. Decreased availability of substitute leisure activities, especially indoor activities, which may have made angling relatively more attractive as a way to spend one's leisure time [@midway2021covid; @morales2021contrasting]
 
-4. Generalizable lessons: COVID-19 catalyzed many other socio-economic changes, in particular a shift toward remote work, increased internal migration and business formation, and possibly an increase in labor bargaining power. These trends seem likely to persist beyond the end of the pandemic, and will have implications for all aspects of public management, with fisheries management being no exception. COVID impacts thus need to be understood not just as limited to the pandemic era, but as harbingers of things to come. 
-
-In this paper, we focus on the first item. In particular, we investigate the relationship between marine fishing trips and COVID 19 policy stringency. It has been largely understood that COVID 19 exerted a positive influence on outdoor recreation activity generally, and angling in particular. However, the pandemic ushered in a complex tangle of causal pathways, including some which dampened fishing activity, and catalyzed a broad range of social changes, many of which will persist well into the future. It is thus necessary to understand in greater detail the individual factors and causal pathways through which the pandemic bump in fishing activity operated if we wish to obtain general insights which can inform fisheries management going forward.
+The first two pathways imply a decrease in fishing effort while the latter two imply an increase. In a national survey of U.S. anglers, most respondents experienced some access restrictions, but nearly all respondents reported that they did not think that recreational fishing was unsafe during the early stages of the pandemic in 2020 @midway2021covid. The same study found that anglers reported very little change in the number of trips they took relative to the same period in years past. However, this is self-reported changes and      
 
 
-# Background
-
-Landry et al (2021) provide a useful summary of potential causal pathways through which COVID-19, and the policy response to it, may affect outdoor recreation generally, which we adapt here for the specific instance of angling:
-
-1. Site closures, which may force anglers to cancel trips if a boat ramp or pier was closed.^[A state-by-state summary of some of this information is available in this spreadsheet: https://docs.google.com/spreadsheets/d/12n_FR0Re2_tpL_oZCdDCqWSIZf5smGn5palKhhh-CYk]
-
-2. Concern about infection risk, which may have led people to cancel planned trips, and cease to plan new trips.
-
-3. An increase in leisure time, due to reduced commuting time and work-from-home, as well as increased unemployment^[though note that the latter involves an ambiguous income effect, depending on whether or not the person's pre-pandemic income was high enough that the loss of income was not offset by unemployment supplement under the CARES act.]
-
-4.Decreased availability of substitute leisure activities, especially indoor activities, which may have made angling relatively more attractive as a way to spend one's leisure time.
-
-To these considerations, we may also add:
-
-5. Relocation, as it is known both from census data and cell phone location data that internal migration in the US picked up substantially during the pandemic, and it is likely that the Southeastern states in our sample saw an uptick in population, while the northern states (at least some of them) like Massachusetts may have seen a decrease in their population. Considering that anglers are people who are very sensitive to location, site quality, etc. this may be particularly salient for them, and the rate of internal migration for anglers may be even higher than for the general population (ooh, this is a good question for the NSAR data).
-
-6. Increases in labor bargaining power, as labor shortages developed simultaneously with increased unemployment, there is evidence that employers have been moved to compete on non-pecuniary margins, such as offering employees greater flexibility in schedules, which may be advantageous to anglers in allowing them to make good on days with favorable fishing weather and get out when they may otherwise have had less flexibility to balance their work obligations with their hobby.
+The net effect of the four pathways depends on prevailing conditions at the time effort is measured. For example, early in the response to the pandemic when lockdowns where common, the effect of site closures and concerns about infection risk would dominate and effort should be relatively low. At other times, however, as lockdowns are relaxed, but restrictions on indoor gatherings and leisure travel remain, effort could increase due the effects of increased leisure time and lack of substitutes for leisure time.
+We look specifically at the relationship between the stringency of COVID policy and the overall level of actual marine angling activity.
 
 
 
+that recreational effort increased about x\% in 2020 relative to historic effort. Increased fishing is likely associated with our result that most respondents considered recreational angling to be a COVID-19 safe activity. Nearly a third of anglers reported changing their motivation for fishing during the pandemic, with stress relief being more popular during the pandemic than before. Driven partly by the perceived safety of social fishtancing, recreational angling remained a popular activity for many US anglers during spring 2020.
 
+Recreational fishing was open during the pandemic @paradis2021can.
+
+Describe the @midway2021covid and @pita2021first studies
+
+<!-- To these considerations, we may also add: -->
+
+<!-- 5. Relocation, as it is known both from census data and cell phone location data that internal migration in the US picked up substantially during the pandemic, and it is likely that the Southeastern states in our sample saw an uptick in population, while the northern states (at least some of them) like Massachusetts may have seen a decrease in their population. Considering that anglers are people who are very sensitive to location, site quality, etc. this may be particularly salient for them, and the rate of internal migration for anglers may be even higher than for the general population (ooh, this is a good question for the NSAR data). -->
+
+<!-- 6. Increases in labor bargaining power, as labor shortages developed simultaneously with increased unemployment, there is evidence that employers have been moved to compete on non-pecuniary margins, such as offering employees greater flexibility in schedules, which may be advantageous to anglers in allowing them to make good on days with favorable fishing weather and get out when they may otherwise have had less flexibility to balance their work obligations with their hobby. -->
+
+In this paper, we measure the net effect of stringency policies on recreational effort over the range of stringency implemented accross the states in the eastern U.S. In particular, we investigate the relationship between marine fishing trips and COVID 19 policy stringency. It has been largely understood that COVID 19 exerted a positive influence on outdoor recreation activity generally, and angling in particular. However, the pandemic ushered in a complex tangle of causal pathways, including some which dampened fishing activity, and catalyzed a broad range of social changes, many of which will persist well into the future. It is thus necessary to understand in greater detail the individual factors and causal pathways through which the pandemic bump in fishing activity operated if we wish to obtain general insights which can inform fisheries management going forward. Specifically, if COVID-19 has changed fishing effort in a persistent fashion then management may need to respond with different regulations and management strategies in the future.
+
+<!-- There are several reasons to study the impact of COVID-19 on marine angling: -->
+
+<!-- 1. Overall impact on fishing effort: if COVID-19 has increased (decreased) fishing effort in a persistent fashion, particularly for areas and modes of fishing with many species managed by ACL's, then management may need to respond by tightening (lengthening) seasons. -->
+
+<!-- 2. New entrants: In addition to short-term changes in the level and kind of fishing activity, we are also interested in whether COVID may have induced new, and especially younger, participants to the fishery. This could potentially have more long term implications, if the longstanding trend of higher churn among younger fishing license holders^[This can be seen on a data dashboard maintained by the America Sportfishing Association, where for instance you can see that for Florida, the churn rate (% of license holders not renewing their prior year's license) for license holders below 35 years old has historically been notably higher than that for older participants, but this trend reversed in 2020, with the churn rate for the youngest participants decreasing from 67% to 37%, while the rate for the oldest participants increased slightly from around 50% to 53%: https://asafishing.org/data-dashboard/]  were to be overturned, and as a result more younger fishermen would become more avid and more skilled, potentially becoming long-term stakeholders in the fishery. -->
+
+<!-- 3. Changes in fishing motivation and satisfaction, which coincides with new entrants to the fishery and congestion effects. -->
+
+<!-- 4. Generalizable lessons: COVID-19 catalyzed many other socio-economic changes, in particular a shift toward remote work, increased internal migration and business formation, and possibly an increase in labor bargaining power. These trends seem likely to persist beyond the end of the pandemic, and will have implications for all aspects of public management, with fisheries management being no exception. COVID impacts thus need to be understood not just as limited to the pandemic era, but as harbingers of things to come. -->
 
 # Methods
 
 ## Data
 
-To conduct our analysis, we construct a panel data set at the state-month level
-spanning 2017 through 2020 for 16 US states, by merging two primary data
-sources: (1) the Marine Recreational Information Program (MRIP), which provides
-the necessary angler survey data to construct monthly estimates of the fishing activity in
-each state, providing our dependent variable, and (2) the Oxford COVID
-Government Response Tracker (OxCGRT), which provides fine-grained (daily)
-variation in the level of COVID policy stringency in each of the US states,
-which we collapse to the monthly level to provide our key independent variable.
-Below, we describe in greater detail these two major data sources, as well as
-some supplementary data used in the analysis,  and our methodology for
-processing these data sources to produce our panel dataset.
+To conduct our analysis, we construct a panel data set at the state-month level spanning 2017 through 2020 for 16 US states, by merging two primary data sources: (1) the Marine Recreational Information Program (MRIP), which provides the necessary angler survey data to construct monthly estimates of the fishing activity in each state, providing our dependent variable, and (2) the Oxford COVID Government Response Tracker (OxCGRT), which provides fine-grained (daily) variation in the level of COVID policy stringency in each of the US states, which we collapse to the monthly level to provide our key independent variable.
+Below, we describe in greater detail these two major data sources, as well as some supplementary data used in the analysis,  and our methodology for processing these data sources to produce our panel dataset.
 
 ### MRIP
 
-The MRIP program oversees survey research to monitor the level of marine angling
-activity in a consistent fashion throughout US fisheries (we discuss the structure of
-these surveys in greater detail below). The primary unit of measurement for
-our aggregated summary of the MRIP dataset is the angler-trip (hereafter
-abbreviated simply to trip), representing the total number of distinct trips
-multiplied by the average party size of those trips.
+The MRIP program oversees survey research to monitor the level of marine angling activity in a consistent fashion throughout US fisheries (we discuss the structure of these surveys in greater detail below). The primary unit of measurement for our aggregated summary of the MRIP dataset is the angler-trip (hereafter abbreviated simply to trip), representing the total number of distinct trips multiplied by the average party size of those trips.
 
-We use the MRIP data for the 16 states along the Gulf and Atlantic coasts in which
-it is available. The MRIP program publishes estimates of
-fishing activity for 2-month periods referred to as waves, but rather than use
-these estimates we use the publicly-available microdata files^[The MRIP data
-files are maintained by NOAA fisheries at the following URL:
-https://www.fisheries.noaa.gov/recreational-fishing-data/recreational-fishing-data-downloads]
-to estimate total trips in each state-month. Creating our own estimates
-also allows us to customize the estimates, and we choose to specifically create
+We use the MRIP data for the 16 states along the Gulf and Atlantic coasts in which it is available. The MRIP program publishes estimates of fishing activity for 2-month periods referred to as waves, but rather than use these estimates we use the publicly-available microdata files^[The MRIP data files are maintained by NOAA fisheries at the following URL:
+https://www.fisheries.noaa.gov/recreational-fishing-data/recreational-fishing-data-downloads] to estimate total trips in each state-month. Creating our own estimates also allows us to customize the estimates, and we choose to specifically create
 estimates of the number of trips taken by in-state residents.
 
-We assemble monthly observations from 2017-2020 for three different modes of
-fishing: private boats, charter boats, and shore. With `r length(unique(tripsTMPS$Year))` 
-years, `r length(unique(tripsTMPS$Month))`
-months in each year and `r length(unique(tripsTMPS$State))` states, the data set
-for each mode has `r length(tripsTMPS$Trips[tripsTMPS$Mode==7])` observations.
+We assemble monthly observations from 2017-2020 for three different modes of fishing: private boats, charter boats, and shore. With `r length(unique(tripsTMPS$Year))` years, `r length(unique(tripsTMPS$Month))` months in each year and `r length(unique(tripsTMPS$State))` states, the data set for each mode has `r length(tripsTMPS$Trips[tripsTMPS$Mode==7])` observations.
 
-The MRIP program currently consists of 2 primary data collection efforts, the
-Fishing Effort Survey (FES), and the Access Point Angler Intercept Survey
-(APAIS). The FES is a mail survey which asks anglers to recall how many trips
-they have been on recently, in order to get information on the total level of
-fishing activity. The APAIS is an in-person survey conducted at common fishing
-locations by field workers, and asks for information about the fishing trip they
-are on when surveyed, as well as sampling some of the fish they catch in order
-to get valid length information for the caught fish , as well as species
-composition. During 2020, the year in which our treatment occurs, the FES was
-able to continue unhindered, while the APAIS was suspended for at least some
-length of time nationwide in March and April 2020, with data
-collection resuming unevenly throughout the country in May and June (wave 3)
-according to local conditions^[see Figure 6 of the MRIP survey design manual for
-more information on which states resumed data collection at which times:
-https://media.fisheries.noaa.gov/2021-09/MRIP-Survey-Design-and-Statistical-Methods-2021-09-15.pdf].
-We are able to construct the total trip estimates are available for all state-months in
-2020 in the same fashion as in 2019 and earlier years, since the FES was able to
-continue unhindered. However, other outcome variables which might have been investigated,
-such as the average party size on a fishing trip, are affected by the APAIS suspension
-and can not be estimated for many
-state-months in early 2020, which is when the largest changes in COVID-19 
-policy stringency occur, and therefore we can not examine the relationship
-between policy stringency and these outcomes due to intractable missing data problems.
+The MRIP program currently consists of 2 primary data collection efforts, theFishing Effort Survey (FES), and the Access Point Angler Intercept Survey (APAIS). The FES is a mail survey which asks anglers to recall how many trips they have been on recently, in order to get information on the total level of fishing activity. The APAIS is an in-person survey conducted at common fishing
+locations by field workers, and asks for information about the fishing trip they are on when surveyed, as well as sampling some of the fish they catch in order to get valid length information for the caught fish , as well as species composition. During 2020, the year in which our treatment occurs, the FES was able to continue unhindered, while the APAIS was suspended for at least some
+length of time nationwide in March and April 2020, with data collection resuming unevenly throughout the country in May and June (wave 3) according to local conditions^[see Figure 6 of the MRIP survey design manual for more information on which states resumed data collection at which times: https://media.fisheries.noaa.gov/2021-09/MRIP-Survey-Design-and-Statistical-Methods-2021-09-15.pdf.
+We are able to construct the total trip estimates are available for all state-months in 2020 in the same fashion as in 2019 and earlier years, since the FES was able to continue unhindered. However, other outcome variables which might have been investigated,
+such as the average party size on a fishing trip, are affected by the APAIS suspension and can not be estimated for many
+state-months in early 2020, which is when the largest changes in COVID-19 policy stringency occur, and therefore we can not examine the relationship between policy stringency and these outcomes due to intractable missing data problems.
 
 
 ### COVID Stringency Index
@@ -291,11 +255,7 @@ We take the daily level data for each state and collapse it to a state-month lev
 
 ### Supplementary Data
 
-In order to make the MRIP data on a comparable basis across states, we calculate
-per capita trip level using annual population estimates for each state bordering
-the Atlantic and Gulf of Mexico. For 2017-2019, these are estimates from the
-American Community Survey, and for 2020 we use figures from the Decennial
-Census.
+In order to make the MRIP data on a comparable basis across states, we calculate per capita trip level using annual population estimates for each state bordering the Atlantic and Gulf of Mexico. For 2017-2019, these are estimates from the American Community Survey, and for 2020 we use figures from the Decennial Census.
 
 ### Descriptive Statistics
 
