@@ -275,20 +275,7 @@ mbms <- mbms %>%
             by = c("State" = "state_name"))
 ```
 
-```{r private-boat-trips-seasonality-plot,echo=FALSE,warning=FALSE,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the peak month. The bold line gives a simple average of these relative monthly values across the 16 states."}
-tripsTMPS %>%
-  filter(Mode == 7 & Year == 2019) %>%
-  group_by(State) %>% 
-  mutate(relative_TPC = TPC / max(TPC)) %>% 
-  ggplot(aes(x=Month, y=relative_TPC, group=State)) +
-  geom_line(alpha = 0.08) +
-  stat_summary(mapping = aes(x=Month,  y=relative_TPC, group = 1), 
-               fun = "mean", 
-               geom = "line",
-               inherit.aes = FALSE) +
-  ylab("Trips (relative to peak trips)") +
-  ggtitle("Private Boats")
-```
+
 
 Figure \@ref(fig:private-boat-trips-seasonality-plot) displays seasonal trends
 in the level of trips across the 16 states in the dataset. Each grey line plots
@@ -303,46 +290,17 @@ and Maine is not sampled in March or April either. In the [MRIP Survey Design Ma
 particular there are only 4 states with positive trips in January: Florida (with January trips equal to 43% of the peak value), North Carolina (37%), Alabama (27%), and
 Mississippi (21%).
 
-```{r charter-boat-trips-seasonality-plot,echo=FALSE,warning=FALSE,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the peak month. The bold line gives a simple average of these relative monthly values across the 16 states."}
+
+```{r trips-seasonality-plot,echo=FALSE,warning=FALSE,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State, relative to annual total. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the total annual trips for the state. The bold line gives a simple average of these relative monthly values across the 16 states."}
+mode_names <- c(
+                    `3` = "Shore Trips",
+                    `5` = "Charter Trips",
+                    `7` = "Private Trips"
+                    )
+
 tripsTMPS %>%
-  filter(Mode == 5 & Year == 2019) %>%
-  group_by(State) %>% 
-  mutate(relative_TPC = TPC / max(TPC)) %>% 
-  ggplot(aes(x=Month, y=relative_TPC, group=State)) +
-  geom_line(alpha = 0.08) +
-  stat_summary(mapping = aes(x=Month,  y=relative_TPC, group = 1), 
-               fun = "mean", 
-               geom = "line",
-               inherit.aes = FALSE) +
-  ylab("Trips (relative to peak trips)") +
-  ggtitle("Charter Boats")
-```
-
-```{r shore-trips-seasonality-plot,echo=FALSE,warning=FALSE,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the peak month. The bold line gives a simple average of these relative monthly values across the 16 states."}
-tripsTMPS %>%
-  filter(Mode == 3 & Year == 2019) %>%
-  group_by(State) %>% 
-  mutate(relative_TPC = TPC / max(TPC)) %>% 
-  ggplot(aes(x=Month, y=relative_TPC, group=State)) +
-  geom_line(alpha = 0.08) +
-  stat_summary(mapping = aes(x=Month,  y=relative_TPC, group = 1), 
-               fun = "mean", 
-               geom = "line",
-               inherit.aes = FALSE) +
-  ylab("Trips (relative to peak trips)") +
-  ggtitle("Shore")
-```
-
-Figures \@ref(fig:charter-boat-trips-seasonality-plot) and
-\@ref(fig:shore-trips-seasonality-plot) replicate Figure 
-\@ref(fig:private-boat-trips-seasonality-plot), but for charter and shore mode
-trips, respectively.
-
-
-```{r private-boat-trips-seasonality-plot2,echo=FALSE,warning=FALSE,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State, relative to annual total."}
-tripsTMPS %>%
-  filter(Mode == 7 & Year == 2019) %>%
-  group_by(State) %>% 
+  filter(Year == 2019) %>%
+  group_by(State, Mode) %>% 
   mutate(relative_TPC = TPC / sum(TPC)) %>% 
   ggplot(aes(x=Month, y=relative_TPC, group=State)) +
   geom_line(alpha = 0.08) +
@@ -351,12 +309,13 @@ tripsTMPS %>%
                geom = "line",
                inherit.aes = FALSE) +
   ylab("Trips (as a fraction of annual total)") +
-  ggtitle("Private Boats")
+  ggtitle("Seasonality of Fishing Trips, by Mode, by State") +
+  facet_wrap(vars(Mode), scales = "free", nrow = 3, labeller = as_labeller(mode_names))
 ```
 
-Figure \@ref(fig:private-boat-trips-seasonality-plot2) shows the same curves as 
-in Figure \@ref(fig:private-boat-trips-seasonality-plot), but rescaled to show
-monthly values as a fraction of the annual total. This shows that fishing activity
+
+Figure \@ref(fig:trips-seasonality-plot) shows the seasonality of fishing trips
+for each mode, with monthly values as a fraction of the annual total. This shows that fishing activity
 is in most states fairly broadly distributed from April through November, with 
 only 10 state-months accounting for more than 20% of the 
 annual trips in a state, and a maximum of 35% for Maine in June. All but 1 of the 10
