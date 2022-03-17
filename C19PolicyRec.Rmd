@@ -190,10 +190,11 @@ The COVID-19 pandemic and ensuing policy responses had far-reaching social and e
 
 4. A decrease in substitute leisure activities, especially indoor activities may have made angling relatively more attractive as a way to spend one's leisure time [@midway2021covid; @morales2021contrasting]
 
-The first two pathways imply a decrease in fishing effort while the latter two imply an increase. @link2021noaa documents interruptions in U.S. marine fishery data collections due to COVID-19 policies such as lockdowns. Many of these interruptions also affected anglers access to fishing launch sites.^[@paradis2021can find that around ninety percent of freshwater fishing jurisdictions in North America were able to keep fishing open during spring of 2020]. In a national survey of U.S. anglers, most respondents experienced some access restrictions, but nearly all respondents reported that they did not think that recreational fishing was unsafe during the early stages of the pandemic in 2020 @midway2021covid. The same study found that anglers reported very little change in the number of trips they took relative to the same period in years past. However, this is self-reported changes for one period in time averaged over various levels of COVID-19 policy stringencies.  Actual changes in effort over a longer period of time and range of COVID-19 policy stringencies may be different.     
+The first two pathways imply a decrease in fishing effort while the latter two imply an increase. @link2021noaa documents interruptions in U.S. marine fishery data collections due to COVID-19 policies such as lockdowns. Many of these interruptions also affected anglers access to fishing launch sites.^[Our focus is on saltwater anglers, but @paradis2021can found that around ninety percent of freshwater fishing jurisdictions in North America were able to keep fishing open during spring of 2020]. In a national survey of U.S. anglers, most respondents experienced some access restrictions, but nearly all respondents reported that they did not think that recreational fishing was unsafe during the early stages of the pandemic in 2020 @midway2021covid. The same study found that anglers reported very little change in the number of trips they took relative to the same period in years past. However, this is self-reported changes for one period in time averaged over various levels of COVID-19 policy stringencies.  Actual changes in effort over a longer period of time and range of COVID-19 policy stringencies may be different.     
 
-The net effect of the four pathways depends on prevailing conditions at the time effort is measured. For example, early in the response to the pandemic when lockdowns where common, the effect of site closures and concerns about infection risk would dominate and effort should be relatively low. At other times, however, as lockdowns are relaxed, but restrictions on indoor gatherings and leisure travel remain, effort could increase due the effects of increased leisure time and lack of substitutes for leisure time.
-We look specifically at the relationship between the stringency of COVID policy and the overall level of actual marine angling activity.
+The net effect of the four pathways depends on prevailing conditions at the time effort is measured. For example, early in the response to the pandemic when lockdowns where common, the effect of site closures and concerns about infection risk would dominate and effort should be relatively low. At other times, however, as lockdowns are relaxed, but restrictions on indoor gatherings and leisure travel remain, effort could increase due the effects of increased leisure time and lack of substitutes for leisure time. A similar type of variation in trip taking behavior could happen over space, i.e. the different levels of COVID-19 policy stringency in different jurisdictions (e.g., states) could contribute to variations in angler trip taking behavior across jurisdictions.
+
+We use data on the estimated monthly number of saltwater fishing trips from states on the U.S. east coast along with a monthly, state-level measure of COVID-19 policy stringency to examine the relationship between the stringency of COVID-19 policy and the  level of marine angling activity. Our results suggest that the relation ship is nonlinear whereby the number of fishing trips increases at a decreasing rate as COVID-19 policy becomes more stringent. This finding is important to understanding how people respond to measures aimed at containing virus spread and can help in planning during future pandemics.
 
 
 <!-- To these considerations, we may also add: -->
@@ -533,10 +534,10 @@ texreg(list(pm,cm,sm),custom.model.names = c("Private","Charter","Shore"),single
 
 #Dataset to predict trips as a function of stringency
 #holding everything else constant.
-#Using June in Florida: zero stringency should correspond with
-#the mean historical trips in Florida during June
+#Using June 2020 in Florida: zero stringency should correspond with
+#the predicted trips for this period in absence of stringency policies
 nd=data.frame(State="Florida",Month="06",
-              Population=with(tripsTMPS,mean(Population[State=="Florida" & Month=="06"])),
+              Population=with(tripsTMPS,Population[State=="Florida" & Month=="01" & Mode==7 & Year==2020]),
               Stringency=seq(0,3000,by=50))
 
 #Predicted trips as a function of stringency, including confidence intervals
@@ -547,30 +548,33 @@ sd=add_ci(nd,sm)
 #Plot predicted trips and confidence intervals
 par(mfrow=c(3,1))
 
-plot(y=pd$pred/1000000,x=pd$Stringency,type="l",ylim=c(2,5),
+plot(y=pd$pred/1000000,x=pd$Stringency,type="l",ylim=c(2,5),xlim=c(3000,0),
      main="Private Boats",
      xlab="Stringency Index (Monthly sum of daily records: higher is more stringent)",
-     ylab="Millions of Fishing Trips (Scaled to June in FL)")
+     ylab="Millions of Fishing Trips (Scaled to June 2020 in FL)")
 lines(y=pd$LCB0.025/1000000,x=pd$Stringency,lty=2)
 lines(y=pd$UCB0.975/1000000,x=pd$Stringency,lty=2)
+abline(h=pd$pred[pd$Stringency==0]/1000000)
 
-plot(y=cd$pred/1000000,x=cd$Stringency,type="l",ylim=c(.04,.09),
+plot(y=cd$pred/1000000,x=cd$Stringency,type="l",ylim=c(.04,.09),xlim=c(3000,0),
      main="Charter Boats",
      xlab="Stringency Index (Monthly sum of daily records: higher is more stringent)",
-     ylab="Millions of Fishing Trips (Scaled to June in FL)")
+     ylab="Millions of Fishing Trips (Scaled to June 2020 in FL)")
 lines(y=cd$LCB0.025/1000000,x=cd$Stringency,lty=2)
 lines(y=cd$UCB0.975/1000000,x=cd$Stringency,lty=2)
+abline(h=cd$pred[cd$Stringency==0]/1000000)
 
-plot(y=sd$pred/1000000,x=sd$Stringency,type="l",ylim=c(3,7),
+plot(y=sd$pred/1000000,x=sd$Stringency,type="l",ylim=c(3,7),xlim=c(3000,0),
      main="Shore",
      xlab="Stringency Index (Monthly sum of daily records: higher is more stringent)",
-     ylab="Millions of Fishing Trips (Scaled to June in FL)")
+     ylab="Millions of Fishing Trips (Scaled to June 2020 in FL)")
 lines(y=sd$LCB0.025/1000000,x=sd$Stringency,lty=2)
 lines(y=sd$UCB0.975/1000000,x=sd$Stringency,lty=2)
+abline(h=sd$pred[sd$Stringency==0]/1000000)
 
 par(mfrow=c(1,1))
 
-#Use this to reverse the x-axis: xlim=c(3000,0)
+#Use this to reverse the x-axis: xlim=c(0,3000)
 
 #Don't think that we need robust standard error with the
 #Quasi-poisson, but here is how you would calculate them
