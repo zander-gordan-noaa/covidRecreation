@@ -247,16 +247,64 @@ annual_trips_2020_simulated_no_covid <- counterfactual_2020_w_no_COVID %>%
 
 annual_trips_2020_actual %>% 
   left_join(annual_trips_2020_simulated_no_covid, by = "State") %>% 
-  mutate(percentage_increase_due_to_covid = 100 * (annual_trips - annual_trips_hat_no_covid) / annual_trips)
+  mutate(percentage_increase_due_to_covid = 100 * (annual_trips - annual_trips_hat_no_covid) / annual_trips) %>% 
+  arrange(percentage_increase_due_to_covid)
 ```
 
 Here we see most states had more trips than the model predicts they would have
 without COVID
 
+I would like to look at the relationship between these percentage changes
+and the trip-weighted average of the COVID stringency index for each state. My
+hypothesis is that the states with higher average stringency are the ones that 
+saw decreases in trips.
 
+```{r}
+twas <- tripsTMPS %>% 
+  filter(Year == 2020, Mode == "7") %>% 
+  group_by(State) %>% 
+  summarise(trip_weighted_average_stringency = weighted.mean(Stringency, Trips)) %>% 
+  arrange(trip_weighted_average_stringency)
 
+twas
+```
 
+```{r}
+annual_trips_2020_actual %>% 
+  left_join(annual_trips_2020_simulated_no_covid, by = "State") %>% 
+  mutate(percentage_increase_due_to_covid = 100 * (annual_trips - annual_trips_hat_no_covid) / annual_trips) %>% 
+  left_join(twas, by = "State")
+```
 
+Plot:
+
+```{r}
+annual_trips_2020_actual %>% 
+  left_join(annual_trips_2020_simulated_no_covid, by = "State") %>% 
+  mutate(percentage_increase_due_to_covid = 100 * (annual_trips - annual_trips_hat_no_covid) / annual_trips) %>% 
+  left_join(twas, by = "State") %>% 
+  ggplot(aes(x = trip_weighted_average_stringency, y = percentage_increase_due_to_covid)) +
+  geom_point()
+```
+
+How about a correlation:
+
+```{r}
+comparison_2020_df <- annual_trips_2020_actual %>% 
+  left_join(annual_trips_2020_simulated_no_covid, by = "State") %>% 
+  mutate(percentage_increase_due_to_covid = 100 * (annual_trips - annual_trips_hat_no_covid) / annual_trips) %>% 
+  left_join(twas, by = "State")
+
+cor(comparison_2020_df$percentage_increase_due_to_covid, comparison_2020_df$trip_weighted_average_stringency)
+  
+```
+
+We could, alternately, look at the data for 2019, but with the COVID stringency
+values of 2019:
+
+```{r}
+
+```
 
 
 
