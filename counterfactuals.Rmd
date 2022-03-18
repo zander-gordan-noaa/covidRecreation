@@ -1,0 +1,270 @@
+---
+title: "Counterfactuals"
+output: html_notebook
+---
+
+
+```{r message=FALSE, warning=FALSE}
+library(feather)
+library(survey)
+options(survey.lonely.psu="adjust",multicore=TRUE)
+library(tidycensus)
+library(tidyverse)
+library(ggplot2)
+library(dplyr)
+library(texreg)
+library(cdlTools)
+library(kableExtra)
+library(ciTools)
+library(sandwich)
+library(lmtest)
+library(fst)
+```
+
+```{r}
+tripsTMPS=readRDS("tripsTMPS.rds")
+tripsTMPS %>% head()
+```
+
+Estimate model for private mode:
+
+```{r}
+mf=formula(Trips ~ State + Month + I(Stringency/100) + I((Stringency/100)^2) + log(Population))
+pm=glm(mf,data=tripsTMPS,family = quasipoisson,subset=Mode==7 )
+```
+
+How do the actual trip values compare with model-predicted values?
+
+```{r}
+private_trips_predictions <- tripsTMPS %>% 
+  filter(Mode == "7") %>% 
+  select(Year, Month, State, Population, Stringency, Trips) %>% 
+  add_ci(pm) %>% 
+  rename(Trips_hat = pred) %>% 
+  mutate(residuals = Trips - Trips_hat)
+
+private_trips_predictions
+```
+
+This is a bit troubling, as we can immediately see there are some strange things going on
+with months that have "0 trips"...
+
+How does a scatter plot look?
+
+```{r}
+private_trips_predictions %>% 
+  ggplot(aes(Trips, Trips_hat)) +
+  geom_point()
+```
+
+Plotting the residuals:
+
+```{r}
+private_trips_predictions %>% 
+  ggplot(aes(x = residuals)) + 
+  geom_histogram(binwidth=20000)
+```
+
+Print the model fit info:
+
+```{r}
+pm
+```
+
+
+Lets look at the first scatter plot with logs:
+
+```{r}
+private_trips_predictions %>% 
+  ggplot(aes(Trips+1, Trips_hat+1), ) +
+  geom_point() +
+  scale_x_log10() + scale_y_log10()
+```
+
+This shows much more clearly that we have a model which is producing reasonable 
+predictions for most observations, but is drastically malfunctioning (specifically, overpredicting) for some
+observations, namely those which have "0" trips. This is because we estimate an overall
+national seasonality trend, not a state-specific seasonality trend.
+
+Lets re-estimate the model excluding state-months for which there is no real data.
+
+We first need to identify those state months:
+
+```{r}
+tripsTMPS %>% 
+  filter(Mode == "7") %>% 
+  group_by(State, Month) %>% 
+  summarise(max_Trips = max(Trips), .groups = "drop") %>% 
+  arrange(max_Trips)
+```
+
+We have a total of 35 state-months which have 0 trips for all years. Lets get a 
+list of these, compare them with the MRIP data collection guide, and remove them
+from the model:
+
+```{r}
+no_data_sms<- tripsTMPS %>% 
+  filter(Mode == "7") %>% 
+  group_by(State, Month) %>% 
+  summarise(max_Trips = max(Trips), .groups = "drop") %>% 
+  filter(max_Trips == 0) %>% 
+  select(State, Month)
+
+no_data_sms
+```
+
+This all looks right, and lines up with figure 6 [here](https://media.fisheries.noaa.gov/2021-09/MRIP-Survey-Design-and-Statistical-Methods-2021-09-15.pdf).
+
+```{r}
+data_for_new_model <- tripsTMPS %>% 
+  filter(Mode == "7") %>% 
+  anti_join(no_data_sms, by = c("State", "Month"))
+
+pm_new = glm(mf,data=data_for_new_model,family = quasipoisson)
+pm_new
+```
+
+Lets look at the residual plots for this new, reduced dataset and fitted model:
+
+```{r}
+private_trips_predictions_new <- data_for_new_model %>% 
+  select(Year, Month, State, Population, Stringency, Trips) %>% 
+  add_ci(pm_new) %>% 
+  rename(Trips_hat = pred) %>% 
+  mutate(residuals = Trips - Trips_hat)
+
+private_trips_predictions_new
+```
+
+```{r}
+private_trips_predictions_new %>% 
+  ggplot(aes(Trips+1, Trips_hat+1), ) +
+  geom_point() +
+  scale_x_log10() + scale_y_log10()
+```
+
+This is something of an improvement, though certainly not as good as I had hoped...
+
+Have the main conclusions changed regarding the inverse-U shape?
+
+```{r}
+nd=data.frame(State="Florida",Month="06",
+              Population=with(tripsTMPS,Population[State=="Florida" & Month=="01" & Mode==7 & Year==2020]),
+              Stringency=seq(0,3000,by=50))
+
+#Predicted trips as a function of stringency, including confidence intervals
+pd=add_ci(nd,pm_new)
+
+plot(y=pd$pred/1000000,x=pd$Stringency,type="l",ylim=c(2,5),xlim=c(3000,0),
+     main="Private Boats",
+     xlab="Stringency Index (Monthly sum of daily records: higher is more stringent)",
+     ylab="Millions of Fishing Trips (Scaled to June 2020 in FL)")
+lines(y=pd$LCB0.025/1000000,x=pd$Stringency,lty=2)
+lines(y=pd$UCB0.975/1000000,x=pd$Stringency,lty=2)
+abline(h=pd$pred[pd$Stringency==0]/1000000)
+```
+
+They absolutely have not! And if anything, the confidence intervals are tighter
+since the model fit is improved, and so I think this is an improvement in
+every way. What is particularly striking to me is that the "break-even" point for
+stringency is essentially unchanged, around 2200. 
+
+---
+
+What was I originally trying to do here? I seem to have gotten a bit side-tracked...
+
+The original idea was to try and create counter-factual comparisons of how many
+total trips would have occurred in each state in 2020 if there had been no COVID.
+This is accomplished by taking predictions of each state-month given Stringency
+equal to 0.
+
+First lets get the annual total under the actual scenario:
+
+```{r}
+tripsTMPS %>% 
+  filter(Mode == "7", Year == 2020) %>% 
+  group_by(State) %>% 
+  summarise(annual_trips = sum(Trips)) %>% 
+  arrange(annual_trips)
+```
+
+It really is striking by what a large margin Florida has the most private boat
+fishing trips of any state...
+
+Now, to get the predicted values for each state-month, we need to create a dataframe
+to which we can add the predictions:
+
+```{r}
+counterfactual_2020_w_no_COVID <- tripsTMPS %>% 
+  filter(Mode == "7", Year == 2020) %>% 
+  select(State, Month, Population) %>% 
+  mutate(Stringency = 0) %>% 
+  anti_join(no_data_sms, by = c("State", "Month"))
+
+counterfactual_2020_w_no_COVID
+```
+
+Note that I have excluded the 0 state-months, so that I can go back in and fill those
+with 0's.
+
+Now to add the predictions:
+
+```{r}
+counterfactual_2020_w_no_COVID <- counterfactual_2020_w_no_COVID %>% 
+  add_ci(pm_new)
+
+counterfactual_2020_w_no_COVID
+```
+
+And fill in the 0's:
+
+```{r}
+counterfactual_2020_w_no_COVID <- counterfactual_2020_w_no_COVID %>% 
+  complete(State, Month) %>% 
+  mutate(Stringency = 0) %>% 
+  group_by(State) %>% 
+  fill(Population, .direction = "updown") %>% 
+  ungroup() %>% 
+  rename(Trips_hat = pred) %>% 
+  mutate(Trips_hat = if_else(is.na(Trips_hat), 0, Trips_hat))
+
+counterfactual_2020_w_no_COVID
+```
+
+Now lets compare actual trips in 2020 with the predicted trips if there had
+been no COVID in 2020:
+
+```{r}
+annual_trips_2020_actual <- tripsTMPS %>% 
+  filter(Mode == "7", Year == 2020) %>% 
+  group_by(State) %>% 
+  summarise(annual_trips = sum(Trips)) %>% 
+  arrange(annual_trips)
+
+annual_trips_2020_simulated_no_covid <- counterfactual_2020_w_no_COVID %>% 
+  group_by(State) %>% 
+  summarise(annual_trips_hat_no_covid = sum(Trips_hat))
+
+annual_trips_2020_actual %>% 
+  left_join(annual_trips_2020_simulated_no_covid, by = "State") %>% 
+  mutate(percentage_increase_due_to_covid = 100 * (annual_trips - annual_trips_hat_no_covid) / annual_trips)
+```
+
+Here we see most states had more trips than the model predicts they would have
+without COVID
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
