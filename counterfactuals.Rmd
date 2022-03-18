@@ -303,16 +303,96 @@ We could, alternately, look at the data for 2019, but with the COVID stringency
 values of 2019:
 
 ```{r}
+counterfactual_2019_w_COVID <- tripsTMPS %>% 
+  filter(Mode == "7", Year == 2019) %>% 
+  select(State, Month, Population) %>% 
+  anti_join(no_data_sms, by = c("State", "Month"))
 
+counterfactual_2019_w_COVID
 ```
 
+We now want to join the 2020 Stringency values:
 
+```{r}
+counterfactual_2019_w_COVID <- tripsTMPS %>% 
+  filter(Mode == "7", Year == 2020) %>% 
+  select(State, Month, Stringency) %>% 
+  right_join(counterfactual_2019_w_COVID, by = c("State", "Month"))
 
+counterfactual_2019_w_COVID
+```
 
+Now we can add in the predictions from the model, and then fill the 0's:
 
+```{r}
+counterfactual_2019_w_COVID <- counterfactual_2019_w_COVID %>% 
+  add_ci(pm_new) %>% 
+  complete(State, Month) %>% 
+  rename(Trips_hat = pred) %>% 
+  mutate(Trips_hat = if_else(is.na(Trips_hat), 0, Trips_hat))
 
+counterfactual_2019_w_COVID
+```
 
+Now to get the actual 2019 values for comparison:
 
+```{r}
+annual_trips_2019_actual <- tripsTMPS %>% 
+  filter(Mode == "7", Year == 2019) %>% 
+  group_by(State) %>% 
+  summarise(annual_trips = sum(Trips)) %>% 
+  arrange(annual_trips)
 
+annual_trips_2019_simulated_w_covid <- counterfactual_2019_w_COVID %>% 
+  group_by(State) %>% 
+  summarise(annual_trips_hat_w_covid = sum(Trips_hat))
 
+annual_trips_2019_actual %>% 
+  left_join(annual_trips_2019_simulated_w_covid, by = "State") %>% 
+  mutate(percentage_increase_if_covid = 100 * (annual_trips_hat_w_covid - annual_trips) / annual_trips) %>% 
+  arrange(percentage_increase_if_covid)
+```
+
+The rankings of states do not seem to be especially preserved in any way...
+
+Lets look at a scatter plot of the 2 percentage changes I have calculated:
+
+```{r}
+counterfactuals_2019 <- annual_trips_2019_actual %>% 
+  left_join(annual_trips_2019_simulated_w_covid, by = "State") %>% 
+  mutate(percentage_increase_if_covid = 100 * (annual_trips_hat_w_covid - annual_trips) / annual_trips) %>% 
+  arrange(percentage_increase_if_covid) %>% 
+  rename(annual_trips_2019 = annual_trips, 
+         annual_trips_2019_hat_w_covid = annual_trips_hat_w_covid,
+         percentage_increase_2019_if_covid = percentage_increase_if_covid)
+
+counterfactuals_2020 <- annual_trips_2020_actual %>% 
+  left_join(annual_trips_2020_simulated_no_covid, by = "State") %>% 
+  mutate(percentage_increase_due_to_covid = 100 * (annual_trips - annual_trips_hat_no_covid) / annual_trips) %>% 
+  arrange(percentage_increase_due_to_covid) %>% 
+  rename(annual_trips_2020 = annual_trips, 
+         annual_trips_2020_hat_no_covid = annual_trips_hat_no_covid,
+         percentage_increase_2020_due_to_covid = percentage_increase_due_to_covid)
+
+counterfactuals <- counterfactuals_2019 %>% 
+  left_join(counterfactuals_2020, by = "State")
+
+counterfactuals
+```
+
+```{r}
+counterfactuals %>% 
+  ggplot(aes(x = percentage_increase_2019_if_covid, y = percentage_increase_2020_due_to_covid)) +
+  geom_point()
+```
+
+and a correlation coefficient:
+
+```{r}
+cor(counterfactuals$percentage_increase_2019_if_covid,
+    counterfactuals$percentage_increase_2020_due_to_covid)
+```
+
+And this somehow manages to be negative, which does not make sense to me...
+I don't think it is worth pursuing this route any further.
 
