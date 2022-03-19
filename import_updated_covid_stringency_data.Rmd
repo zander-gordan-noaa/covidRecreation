@@ -1,0 +1,164 @@
+---
+title: "Importing updated COVID Stringency data"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+We would like to consider updating our analysis to include 2021 data, and to
+that end we need updated COVID stringency data, as the current file only goes
+to April 2021. Unfortunately, the `xlsx` format data we have has not been updated, and there is a
+csv we need to import:
+
+```{r}
+stringency_latest <- read_csv("OxCGRT_US_latest.csv")
+```
+
+```{r}
+names(stringency_latest)
+```
+
+Let me just grab the columns we care about:
+
+```{r}
+stringency_latest <- stringency_latest %>% 
+  select(CountryName, CountryCode, RegionName, RegionCode, Jurisdiction, Date,
+         StringencyIndex, StringencyLegacyIndex) 
+
+stringency_latest %>% head()
+```
+
+Let me re-format some of these columns:
+
+But first check what values there are for jurisdiction...
+
+```{r}
+stringency_latest %>% 
+  select(Jurisdiction) %>% distinct()
+```
+
+And values for RegionName:
+
+```{r}
+stringency_latest %>% 
+  select(RegionName) %>% distinct()
+```
+
+It has the 50 states, plus DC and some NA values.
+
+```{r}
+stringency_latest <- stringency_latest %>% 
+  rename(State = RegionName) %>% 
+  mutate(Year = as.integer((substr(Date, start = 1, stop = 4))),
+         Month = substr(Date, start = 5, stop = 6),
+         Day = substr(Date, start = 7, stop = 8)) %>% 
+  select(State, Year, Month, Day, StringencyIndex, StringencyLegacyIndex)
+
+stringency_latest %>% head()
+```
+
+Lets collapse to the month level and compare values:
+
+```{r}
+stringency_monthly <- stringency_latest %>% 
+  group_by(State, Year, Month) %>% 
+  summarise(Stringency = sum(StringencyIndex),
+            StringencyLegacy = sum(StringencyLegacyIndex),
+            .groups = "drop")
+
+stringency_monthly
+```
+
+These values are, unfortunately, not matching up with the values from the prior
+data. However, I have figured out the problem. The old values we had were the sum
+of the state-specific indices and the national value.
+
+I need to get the national values of stringency for each date:
+
+```{r}
+national_stringency <- stringency_latest %>% 
+  filter(is.na(State)) %>% 
+  select(Year, Month, Day, StringencyIndex) %>% 
+  rename(NationalStringencyIndex = StringencyIndex)
+
+national_stringency
+```
+
+I can now add these to the state values for each state, and collapse to the monthly
+level:
+
+```{r}
+stringency_monthly <- stringency_latest %>% 
+  filter(!is.na(State)) %>% 
+  left_join(national_stringency, by = c("Year", "Month", "Day")) %>% 
+  mutate(StringencyIndex = StringencyIndex + NationalStringencyIndex) %>% 
+  group_by(State, Year, Month) %>% 
+  summarise(Stringency = sum(StringencyIndex),
+            .groups = "drop")
+
+stringency_monthly
+```
+
+
+This also does not match up with the old data. After some extensive investigation,
+I have figured out the problem. There are 2 versions of the COVID stringnecy
+index for US states, and I am looking at the wrong one, or at least a different
+one than we had for the old data.
+
+The data I have downloaded and investigated is the one here:
+
+https://github.com/OxCGRT/USA-covid-policy
+
+This is a USA-specific data repo
+
+And the data that matches the old data we have been using for the paper is here:
+
+https://github.com/OxCGRT/covid-policy-tracker
+
+
+The difference between the stringency indices provided by the files in these 2 
+different repos (general repo and US repo) is that the general repo accounts for
+national policies in calculating the state-specific stringency index, while the US
+specific repo does not. In particular, the general repo replaces component scores
+for state-days where the national policy on that day is more stringent than the
+state policy. For instance, for the travel indicator component of the index,
+if Alabama had a 2 and Maine had 4, and the US policy was a 3, then under the general
+repos methodology Alabama would have a 3 and Maine would have a 4, while under the US
+repo's methodology, Alabama would retain its 2. 
+
+In order to be consistent with the old data, we need to use the general repo's
+data. However, I wonder if this strategy is not masking some meaningful variation
+in state policies, especially considering that US Federal policy was certainly not 
+meaningfully adhered to in many states.... It may be worth using both versions of 
+the index and comparing results, and also I should dig more into the discrepancies
+and try to reason through which methodology is more appropriate based on that.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

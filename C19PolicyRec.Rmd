@@ -95,9 +95,7 @@ tripsTM =
   summarize(N_obs = n(),
             Trips = sum(wp_int,na.rm=TRUE),
             Hrsf  = weighted.mean(HRSF,wp_int,na.rm=TRUE),
-            Party = weighted.mean(PARTY,wp_int,na.rm=TRUE),
-            Miles = weighted.mean(MILES,wp_int,na.rm=TRUE),
-            Htvl  = weighted.mean(TRAVELHOURS,wp_int,na.rm=TRUE)) 
+            Party = weighted.mean(PARTY,wp_int,na.rm=TRUE)) 
 
 
 #prop.table(table(TripsTM$N_obs==1 & !is.na(TripsTM$Hrsf)))
