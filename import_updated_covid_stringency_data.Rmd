@@ -136,10 +136,89 @@ meaningfully adhered to in many states.... It may be worth using both versions o
 the index and comparing results, and also I should dig more into the discrepancies
 and try to reason through which methodology is more appropriate based on that.
 
+```{r}
+stringency_global <- read_csv("OxCGRT_latest.csv")
+```
+
+Get just the US state-specific data:
 
 
+```{r}
+stringency_us <- stringency_global %>% 
+  filter(CountryCode == "USA") %>% 
+  rename(State = RegionName) %>% 
+  mutate(Year = as.integer((substr(Date, start = 1, stop = 4))),
+         Month = substr(Date, start = 5, stop = 6),
+         Day = substr(Date, start = 7, stop = 8)) %>% 
+  select(State, Year, Month, Day, StringencyIndex)
 
+stringency_us
+```
 
+Collapse to monthly level:
+
+```{r}
+stringency_us_monthly <- stringency_us %>% 
+  group_by(State, Year, Month) %>% 
+  summarise(Stringency = sum(StringencyIndex),
+            .groups = "drop")
+
+stringency_us_monthly
+```
+
+Let me compare these with the old values:
+
+```{r}
+tripsTMPS_p <- readRDS("tripsTMPS.rds") %>% filter(Mode == "7")
+
+stringency_us_monthly %>% 
+  left_join(tripsTMPS_p, by = c("State", "Year", "Month")) %>% 
+  filter(!is.na(Stringency.y)) %>% 
+  filter(Stringency.x != Stringency.y) %>% 
+  select(State, Year, Month, Stringency.x, Stringency.y)
+```
+
+There are 40 state-months where there is some discrepancy between this updated data, and the
+old data we had been using, mostly in February and March. Specifically:
+
+```{r}
+stringency_us_monthly %>% 
+  left_join(tripsTMPS_p, by = c("State", "Year", "Month")) %>% 
+  filter(!is.na(Stringency.y)) %>% 
+  filter(Stringency.x != Stringency.y) %>% 
+  select(State, Year, Month, Stringency.x, Stringency.y) %>% 
+  count(Month)
+```
+
+80% of these discrepancies are from Feb and March 2020, with others randomly throughout
+the year.
+
+Plotting:
+
+```{r}
+stringency_us_monthly %>% 
+  left_join(tripsTMPS_p, by = c("State", "Year", "Month")) %>% 
+  filter(!is.na(Stringency.y)) %>% 
+  filter(Stringency.x != Stringency.y) %>% 
+  select(State, Year, Month, Stringency.x, Stringency.y) %>% 
+  ggplot(aes(Stringency.x, Stringency.y)) + geom_point()
+```
+
+These are clearly very minor discrepancies, and I feel fine treating this new
+data as essentially the same as the old data for all practical purposes.
+
+Let me sum up with all the code needed to get to the monthly dataset:
+
+```{r}
+read_csv("OxCGRT_latest.csv") %>%
+  filter(CountryCode == "USA") %>% 
+  rename(State = RegionName) %>% 
+  mutate(Year = as.integer((substr(Date, start = 1, stop = 4))),
+         Month = substr(Date, start = 5, stop = 6)) %>% 
+  group_by(State, Year, Month) %>% 
+  summarise(Stringency = sum(StringencyIndex),
+            .groups = "drop")
+```
 
 
 
