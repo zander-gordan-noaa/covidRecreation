@@ -3,3 +3,194 @@ title: "Processing updated MRIP data"
 output: html_notebook
 ---
 
+```{r}
+library(feather)
+library(tidyverse)
+library(tidycensus)
+```
+
+Load the new MRIP data:
+
+```{r}
+trips <- read_feather("../data/trips1721.feather")
+
+trips %>% head()
+```
+
+```{r}
+tripsTM <- trips %>% 
+  filter(wp_int > 0, month != 99, MODE_FX != 4, ST == ST_RES) %>% 
+  # exclude anomalous observations
+  mutate(PARTY = if_else(PARTY > 12, NA_real_, PARTY),
+         HRSF = if_else((HRSF > 24) | (HRSF == 0), NA_real_, HRSF)) %>% 
+  complete(YEAR,month,MODE_FX,ST) %>%
+  group_by(YEAR,month,MODE_FX,ST) %>%
+  summarize(N_obs = n(),
+            Trips = sum(wp_int,na.rm=TRUE),
+            Hrsf  = weighted.mean(HRSF,wp_int,na.rm=TRUE),
+            Party = weighted.mean(PARTY,wp_int,na.rm=TRUE),
+            .groups = "drop") %>% 
+  mutate(MONTH = as.numeric(month),
+         year = as.numeric(as.character(YEAR)),
+         fips = as.numeric(as.character(ST)))
+
+tripsTM
+```
+
+Get state population:
+
+```{r}
+#Function to retrieve annual state population estimates from ACS
+acsY = function(y) {
+  d=get_acs(geography = "state", 
+            variables = "B01001_001", 
+            year = y,
+            survey = "acs1")
+  d$year=y
+  return(d)
+}
+
+#Retrieve state population estimates for 2017-2019
+pop=do.call(rbind,lapply(2017:2019,FUN=function(x) acsY(x)))
+pop
+```
+
+And we have to use decennial for 2020 data:
+
+```{r}
+ pop20 <- get_decennial(geography = "state", 
+                       variables = "P1_001N", 
+                       year = 2020)
+
+pop20
+```
+
+And I have to download the 2021 data manually as it is not on the API yet:
+
+```{r}
+NST_EST2021_alldata <- read_csv("../data/NST-EST2021-alldata.csv")
+
+pop21 <- NST_EST2021_alldata %>% 
+  rename(fips = STATE, Population = POPESTIMATE2021) %>% 
+  filter(fips != "00") %>% 
+  select(fips, Population) %>% 
+  mutate(year = 2021)
+
+pop21
+```
+
+
+
+Merge this back in:
+
+```{r}
+pop20 <- pop20 %>% 
+  rename(fips = GEOID, Population = value) %>% 
+  select(fips, Population) %>% 
+  mutate(year = 2020)
+
+pop <- pop %>% 
+  rename(fips = GEOID, Population = estimate) %>% 
+  select(fips, Population, year) %>% 
+  bind_rows(pop20) %>% 
+  bind_rows(pop21) %>% 
+  mutate(fips = as.integer(fips))
+  
+pop
+```
+
+And merge the population values to the MRIP data:
+
+```{r}
+tripsTMP <- tripsTM %>% 
+  left_join(pop, by = c("fips", "year"))
+```
+
+Now to load the stringency data and prepare it for joining:
+
+```{r}
+fips_codes_state <- fips_codes %>% select(state_code, state_name) %>% distinct()
+
+stringency <- read_csv("../data/OxCGRT_latest.csv") %>%
+  filter(CountryCode == "USA") %>% 
+  rename(State = RegionName) %>% 
+  mutate(Year = as.integer((substr(Date, start = 1, stop = 4))),
+         Month = substr(Date, start = 5, stop = 6)) %>% 
+  group_by(State, Year, Month) %>% 
+  summarise(Stringency = sum(StringencyIndex),
+            .groups = "drop") %>% 
+  left_join(fips_codes_state, by = c("State" = "state_name")) %>% 
+  rename(fips = state_code) %>% 
+  mutate(fips = as.integer(fips))
+
+stringency
+```
+
+
+
+```{r}
+tripsTMPS <- tripsTMP %>% 
+  left_join(stringency, by = c("YEAR" = "Year", "month" = "Month", "fips" = "fips")) %>% 
+  rename(Year = YEAR,
+         Month = month,
+         Mode= MODE_FX,
+         Obs = N_obs,
+         FIPS = fips) %>% 
+  select(Year,Month,Mode,Obs,Trips,Hrsf,Party,FIPS,State,Population,Stringency) %>% 
+  mutate(TPC = Trips / Population)
+
+saveRDS(tripsTMPS,"tripsTMPS_new.rds")
+
+tripsTMPS
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
