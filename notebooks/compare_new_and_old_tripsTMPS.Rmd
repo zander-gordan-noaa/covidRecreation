@@ -1,0 +1,95 @@
+---
+title: "Compare new and old datasets"
+output: html_notebook
+---
+
+I want to verify that the new dataset I have produced with 2021 data matches 
+the previous dataset for the observations through 2020.
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+tripsTMPS_new <- readRDS("tripsTMPS_new.rds")
+tripsTMPS_old <- readRDS("../tripsTMPS.rds")
+
+tripsTMPS_new
+tripsTMPS_old
+```
+
+
+So, the old dataset has 2 variables (Miles and Htvl) which I did not bother
+to include in the new data, since we decided not to use those outcomes. I also
+should sort both the files on the same way:
+
+```{r}
+tripsTMPS_new <- tripsTMPS_new %>% 
+  arrange(Year, Month, Mode, State)
+
+tripsTMPS_old <- tripsTMPS_old %>% 
+  select(!c(Miles,Htvl)) %>% 
+  arrange(Year, Month, Mode, State) %>% 
+  mutate(FIPS = as.numeric(FIPS)) %>% 
+  as_tibble()
+
+tripsTMPS_new
+tripsTMPS_old
+```
+
+
+There are still some discrepancies, let me go back and fix the new file.
+
+
+Ok, the files are now largely identical, let me identify the discrepancies:
+
+```{r}
+tripsTMPS_new_2020 <- tripsTMPS_new %>% filter(Year <= 2020)
+
+dsicrepancies_new_values <- tripsTMPS_new_2020 %>% 
+  anti_join(tripsTMPS_old)
+
+dsicrepancies_new_values
+```
+
+There are 123 observations which are not identical (`anti_join` shows all rows in
+x which are not in y, and here since all the columns match, it is showing rows
+that are not identical), let me compare them with their old values:
+
+```{r}
+dsicrepancies_new_values %>% 
+  left_join(tripsTMPS_old, by = c("Year", "Month", "Mode", "State")) %>% 
+  mutate(Stringency_diff = abs(Stringency.x - Stringency.y)) %>% 
+  arrange(Stringency_diff)
+```
+
+Here we can see that there are some discrepancies in the value of stringency used,
+as I already knew would be the case. I am not too concerned about this, as the 
+difffernces are small, and the large majority of observations have no discrepancies
+at all.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

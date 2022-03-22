@@ -58,60 +58,23 @@ library(fst)
 
 #RUN ONCE TO CREATE DATASET: EVAL SET TO FALSE AFTER
 
-#census_api_key("dc352be83efcd7e4189b8a5d1be652187e50c66d",install=TRUE)
+trips <- read_feather("data/trips1721.feather")
 
-#Load Atlantic and Gulf of Mexico MRIP data
-trips=read_feather("trips1720.feather")
-#Remove observations:
-#without weights
-#without months
-#headboats
-#non-residents 
-#aggregate(I(ST_RES==ST)~MODE_FX+YEAR,FUN=mean,data=trips)
-trips=subset(trips,wp_int>0 & month!=99 & MODE_FX!=4 & ST==ST_RES)
-
-#Create counting variable for aggregation purposes
-trips$one=1
-
-#Mark party size of trips greather than 12 people as missing
-#99% if of trips have less than 13 people
-#cumsum(prop.table(table(trips$PARTY[trips$MODE_FX==7])))
-#cumsum(prop.table(table(trips$PARTY[trips$MODE_FX==5])))
-trips$PARTY[trips$PARTY>12]=NA
-
-#Marking hours fished greater than 24 hours as missing
-#table(trips$HRSF,useNA = "always")
-#There were also a few trips with zero hours fished, marking as missing
-trips$HRSF[trips$HRSF>24 | trips$HRSF==0]=NA
-
-#Merge in distance dataset
-dist=read_fst("distAll.fst")
-trips=merge(trips,dist,by=c("ZIP","ST","CNTY","INTSITE"),all.x=TRUE)
-
-tripsTM = 
-  trips %>%
+tripsTM <- trips %>% 
+  filter(wp_int > 0, month != 99, MODE_FX != 4, ST == ST_RES) %>% 
+  # exclude anomalous observations
+  mutate(PARTY = if_else(PARTY > 12, NA_real_, PARTY),
+         HRSF = if_else((HRSF > 24) | (HRSF == 0), NA_real_, HRSF)) %>% 
   complete(YEAR,month,MODE_FX,ST) %>%
   group_by(YEAR,month,MODE_FX,ST) %>%
   summarize(N_obs = n(),
             Trips = sum(wp_int,na.rm=TRUE),
             Hrsf  = weighted.mean(HRSF,wp_int,na.rm=TRUE),
-            Party = weighted.mean(PARTY,wp_int,na.rm=TRUE)) 
-
-
-#prop.table(table(TripsTM$N_obs==1 & !is.na(TripsTM$Hrsf)))
-
-
-#Setting missing trip estimates to zero and preparing variables for merge
-#tripsTM$trips[is.na(tripsTM$Trips)]=0
-#tripsTM$HRSF[is.na(tripsTM$HRSF)]=0
-#tripsTM$PARTY[is.na(tripsTM$PARTY)]=0
-
-
-tripsTM$MONTH=as.numeric(tripsTM$month)
-tripsTM$year=as.numeric(as.character(tripsTM$YEAR))
-tripsTM$fips=as.numeric(as.character(tripsTM$ST))
-
-
+            Party = weighted.mean(PARTY,wp_int,na.rm=TRUE),
+            .groups = "drop") %>% 
+  mutate(MONTH = as.numeric(month),
+         year = as.numeric(as.character(YEAR)),
+         fips = as.numeric(as.character(ST)))
 
 #Function to retrieve annual state population estimates from ACS
 acsY = function(y) {
@@ -125,46 +88,67 @@ acsY = function(y) {
 
 #Retrieve state population estimates for 2017-2019
 pop=do.call(rbind,lapply(2017:2019,FUN=function(x) acsY(x)))
+pop
 
-#Get 2020 Census state population estimates and merge to the prior years
 pop20 <- get_decennial(geography = "state", 
                        variables = "P1_001N", 
                        year = 2020)
-pop20$year=2020
-pop20=plyr::rename(pop20,replace=c("value" = "estimate"))
-pop=plyr::rbind.fill(pop,pop20)
-pop$fips=as.numeric(pop$GEOID)
 
-#Merge the population estimates to the trip dataset year and state
-tripsTMP=merge(tripsTM,pop,by.x=c("year","fips"),by.y=c("year","fips"),all.x=TRUE)
+NST_EST2021_alldata <- read_csv("data/NST-EST2021-alldata.csv")
 
-#Download daily stringency index for US states and reshape into a long dataset
-#https://github.com/OxCGRT/USA-covid-policy
-stringentw= openxlsx::read.xlsx(xlsxFile = "OxCGRTUS_timeseries_all.xlsx", sheet = 1)
-stringent <- reshape::melt(stringentw, id=names(stringentw[1:5]))
+pop21 <- NST_EST2021_alldata %>% 
+  rename(fips = STATE, Population = POPESTIMATE2021) %>% 
+  filter(fips != "00") %>% 
+  select(fips, Population) %>% 
+  mutate(year = 2021)
 
-#Create month, year, and state fips variables that are compatible withe the trip dataset
-stringent$month=match(substr(stringent$variable,3,5),month.abb)
-stringent$year=as.numeric(substr(stringent$variable,6,9))
-stringent$fips=fips(stringent$region_name)
 
-#Create an aggregated stringency dataset by summing the index by state, year, and month
-stringentm=aggregate(value~year+month+fips,FUN=sum,data=stringent,na.rm=TRUE)
+pop20 <- pop20 %>% 
+  rename(fips = GEOID, Population = value) %>% 
+  select(fips, Population) %>% 
+  mutate(year = 2020)
 
-#Merge stringency index data with trip data by year, month, and state
-tripsTMPS=merge(tripsTMP,stringentm,by.x=c("year","MONTH","fips"),by.y=c("year","month","fips"),all.x=TRUE)
-tripsTMPS$value[is.na(tripsTMPS$value)]=0
+pop <- pop %>% 
+  rename(fips = GEOID, Population = estimate) %>% 
+  select(fips, Population, year) %>% 
+  bind_rows(pop20) %>% 
+  bind_rows(pop21) %>% 
+  mutate(fips = as.integer(fips))
 
-#Cleaning up and naming variables in dataset
-tripsTMPS=subset(tripsTMPS,select=-c(YEAR,MONTH,variable,moe,fips,ST))
-names(tripsTMPS)=c("Year","Month","Mode","Obs","Trips","Hrsf","Party","Miles","Htvl",
-                   "FIPS","State","Population","Stringency")
+tripsTMP <- tripsTM %>% 
+  left_join(pop, by = c("fips", "year"))
 
-#Trips per capita
-tripsTMPS$TPC=tripsTMPS$Trips/tripsTMPS$Population
+fips_codes_state <- fips_codes %>% select(state_code, state_name) %>% distinct()
 
-#Save the final dataset
-saveRDS(tripsTMPS,"tripsTMPS.rds")
+stringency <- read_csv("data/OxCGRT_latest.csv") %>%
+  filter(CountryCode == "USA") %>% 
+  rename(State = RegionName) %>% 
+  mutate(Year = as.integer((substr(Date, start = 1, stop = 4))),
+         Month = substr(Date, start = 5, stop = 6)) %>% 
+  group_by(State, Year, Month) %>% 
+  summarise(Stringency = sum(StringencyIndex),
+            .groups = "drop") %>% 
+  left_join(fips_codes_state, by = c("State" = "state_name")) %>% 
+  rename(fips = state_code) %>% 
+  mutate(fips = as.integer(fips))
+
+fips_codes_state_alt <- fips_codes_state %>% mutate(state_code = as.numeric(state_code))
+
+tripsTMPS <- tripsTMP %>% 
+  left_join(stringency, by = c("YEAR" = "Year", "month" = "Month", "fips" = "fips")) %>% 
+  rename(Year = YEAR,
+         Month = month,
+         Mode= MODE_FX,
+         Obs = N_obs,
+         FIPS = fips) %>% 
+  select(!State) %>% 
+  left_join(fips_codes_state_alt, by = c("FIPS" = "state_code")) %>% 
+  rename(State = state_name) %>% 
+  select(Year,Month,Mode,Obs,Trips,Hrsf,Party,FIPS,State,Population,Stringency) %>% 
+  mutate(TPC = Trips / Population,
+         Stringency = if_else(is.na(Stringency), 0, Stringency))
+
+saveRDS(tripsTMPS, "tripsTMPS.rds")
 
 ```
 

@@ -129,6 +129,8 @@ stringency
 
 
 ```{r}
+fips_codes_state_alt <- fips_codes_state %>% mutate(state_code = as.numeric(state_code))
+
 tripsTMPS <- tripsTMP %>% 
   left_join(stringency, by = c("YEAR" = "Year", "month" = "Month", "fips" = "fips")) %>% 
   rename(Year = YEAR,
@@ -136,8 +138,12 @@ tripsTMPS <- tripsTMP %>%
          Mode= MODE_FX,
          Obs = N_obs,
          FIPS = fips) %>% 
+  select(!State) %>% 
+  left_join(fips_codes_state_alt, by = c("FIPS" = "state_code")) %>% 
+  rename(State = state_name) %>% 
   select(Year,Month,Mode,Obs,Trips,Hrsf,Party,FIPS,State,Population,Stringency) %>% 
-  mutate(TPC = Trips / Population)
+  mutate(TPC = Trips / Population,
+         Stringency = if_else(is.na(Stringency), 0, Stringency))
 
 saveRDS(tripsTMPS,"tripsTMPS_new.rds")
 
