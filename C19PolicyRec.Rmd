@@ -124,8 +124,12 @@ stringency <- read_csv("data/OxCGRT_latest.csv") %>%
   filter(CountryCode == "USA") %>% 
   rename(State = RegionName) %>% 
   mutate(Year = as.integer((substr(Date, start = 1, stop = 4))),
-         Month = substr(Date, start = 5, stop = 6)) %>% 
-  group_by(State, Year, Month) %>% 
+         Month = substr(Date, start = 5, stop = 6),
+         Day = substr(Date, start = 7, stop = 8)) %>% 
+  # next 2 commands assign the last known value of Stringency for days with NA
+  arrange(State, Year, Month, Day) %>% 
+  fill(StringencyIndex) %>% 
+  group_by(State, Year, Month) %>%
   summarise(Stringency = sum(StringencyIndex),
             .groups = "drop") %>% 
   left_join(fips_codes_state, by = c("State" = "state_name")) %>% 
@@ -376,7 +380,8 @@ tripsTMPS %>%
                                State == "Alabama" ~ "AL",
                                TRUE ~ "other")) %>% 
   filter(Year > 2019) %>%
-  ggplot( aes(x=Month,y=Stringency, group=State, color=covid_cat, alpha=covid_cat)) +
+  mutate(Date = lubridate::make_date(Year, Month)) %>% 
+  ggplot(aes(x=Date,y=Stringency, group=State, color=covid_cat, alpha=covid_cat)) +
   geom_line() + 
   ylab("stringency") + 
   scale_color_manual(values = covid_colors, name = "States") +
@@ -481,6 +486,17 @@ st(tripsTMPS %>%
 
 ```
 
+```{r noDataSms, echo=FALSE,warning=FALSE}
+no_data_sms<- tripsTMPS %>% 
+  filter(Mode == "7") %>% 
+  group_by(State, Month) %>% 
+  summarise(max_Trips = max(Trips), .groups = "drop") %>% 
+  filter(max_Trips == 0) %>% 
+  select(State, Month)
+
+data_for_new_model <- tripsTMPS %>% 
+  anti_join(no_data_sms, by = c("State", "Month"))
+```
 
 
 ```{r pfe,echo=FALSE,warning=FALSE}
@@ -488,9 +504,9 @@ st(tripsTMPS %>%
 #Fixed effect poisson regressions of trips on stringency index with a population offset
 #Modeling trips per capita
 mf=formula(Trips ~ State + Month + I(Stringency/100) + I((Stringency/100)^2) + offset(log(Population)))
-pm=glm(mf,data=tripsTMPS,family = quasipoisson,subset=Mode==7 )
-cm=glm(mf,data=tripsTMPS,family = quasipoisson,subset=Mode==5 )
-sm=glm(mf,data=tripsTMPS,family = quasipoisson,subset=Mode==3 )
+pm=glm(mf,data=data_for_new_model,family = quasipoisson,subset=Mode==7 )
+cm=glm(mf,data=data_for_new_model,family = quasipoisson,subset=Mode==5 )
+sm=glm(mf,data=data_for_new_model,family = quasipoisson,subset=Mode==3 )
 
 ```
 

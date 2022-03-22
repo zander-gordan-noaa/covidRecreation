@@ -210,7 +210,7 @@ data as essentially the same as the old data for all practical purposes.
 Let me sum up with all the code needed to get to the monthly dataset:
 
 ```{r}
-read_csv("OxCGRT_latest.csv") %>%
+stringency <- read_csv("../data/OxCGRT_latest.csv") %>%
   filter(CountryCode == "USA") %>% 
   rename(State = RegionName) %>% 
   mutate(Year = as.integer((substr(Date, start = 1, stop = 4))),
@@ -222,11 +222,65 @@ read_csv("OxCGRT_latest.csv") %>%
 
 
 
+```{r}
+stringency %>% 
+  filter(is.na(Stringency), !Year==2022)
+```
+
+There seems to be something unfortunate going on here, and I am worrying that it
+is potentially damaging the results in the new version of the paper with 2021
+data. I think perhaps one of the days is missing in these months, and it is causing
+the whole thing to break. Let me check:
+
+```{r}
+read_csv("../data/OxCGRT_latest.csv") %>% 
+  filter(CountryCode == "USA") %>% 
+  rename(State = RegionName) %>% 
+  mutate(Year = as.integer((substr(Date, start = 1, stop = 4))),
+         Month = substr(Date, start = 5, stop = 6)) %>% 
+  select(Year, Month, State, StringencyIndex, StringencyIndexForDisplay) %>% 
+  filter(Year == 2021, Month == "10", State == "Louisiana")
+```
+
+Yes, here I can see that there is for some reason a single random missing value.
+I think the easiest thing to do here will be to simply impute these missing values.
 
 
+```{r}
+stringency2 <- read_csv("../data/OxCGRT_latest.csv") %>%
+  filter(CountryCode == "USA") %>% 
+  rename(State = RegionName) %>% 
+  mutate(Year = as.integer((substr(Date, start = 1, stop = 4))),
+         Month = substr(Date, start = 5, stop = 6),
+         Day = substr(Date, start = 7, stop = 8)) %>% 
+  arrange(State, Year, Month, Day) %>% 
+  fill(StringencyIndex) %>% 
+  group_by(State, Year, Month) %>%
+  summarise(Stringency = sum(StringencyIndex),
+            .groups = "drop")
+
+stringency2 %>% 
+  filter(is.na(Stringency))
+```
 
 
+Checking the same thing for LA again:
 
+```{r}
+read_csv("../data/OxCGRT_latest.csv") %>%
+  filter(CountryCode == "USA") %>% 
+  rename(State = RegionName) %>% 
+  mutate(Year = as.integer((substr(Date, start = 1, stop = 4))),
+         Month = substr(Date, start = 5, stop = 6),
+         Day = substr(Date, start = 7, stop = 8)) %>% 
+  arrange(State, Year, Month, Day) %>% 
+  fill(StringencyIndex) %>%  
+  select(Year, Month, State, StringencyIndex) %>% 
+  filter(Year == 2021, Month == "10", State == "Louisiana")
+```
+
+So we can see here that the `fill` command is assigning the last known value of
+`StringencyIndex` to the days for which it is missing. This works for me.
 
 
 
