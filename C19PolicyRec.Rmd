@@ -120,8 +120,7 @@ tripsTMP <- tripsTM %>%
 
 fips_codes_state <- fips_codes %>% select(state_code, state_name) %>% distinct()
 
-stringency <- read_csv("data/OxCGRT_latest.csv") %>%
-  filter(CountryCode == "USA") %>% 
+stringency <- read_csv("data/OxCGRT_US_latest.csv") %>% 
   rename(State = RegionName) %>% 
   mutate(Year = as.integer((substr(Date, start = 1, stop = 4))),
          Month = substr(Date, start = 5, stop = 6),

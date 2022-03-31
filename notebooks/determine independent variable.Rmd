@@ -1,0 +1,106 @@
+---
+title: "Figure out independent variable"
+output: html_notebook
+---
+
+We are interested in determining what is an appropriate independent variable for
+this analysis. We have so far been using the Stringency Index, but are now 
+considering whether it would be more appropriate to use one of the components
+rather than the entire index, since it is not a priori clear what should be the
+impact of many of the components on trips. We have in particular honed in on
+the "stay at home order" component of the index as a good candidate for our
+independent variable.
+
+But, in the first place, we need to determine what is the difference between
+2 different versions of the dataset.
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+stringency_us_latest <- read_csv("../data/OxCGRT_US_latest.csv") %>% 
+  rename(State = RegionName) %>% 
+  mutate(Year = as.integer((substr(Date, start = 1, stop = 4))),
+         Month = substr(Date, start = 5, stop = 6),
+         Day = substr(Date, start = 7, stop = 8)) %>% 
+  arrange(State, Year, Month, Day)
+
+
+stringency_latest <- read_csv("../data/OxCGRT_latest.csv") %>% 
+  filter(CountryCode == "USA") %>% 
+  rename(State = RegionName) %>% 
+  mutate(Year = as.integer((substr(Date, start = 1, stop = 4))),
+         Month = substr(Date, start = 5, stop = 6),
+         Day = substr(Date, start = 7, stop = 8)) %>% 
+  arrange(State, Year, Month, Day)
+```
+
+
+I want to look at the values of the `C6_Stay at home requirements` variable,
+and see if there are any discrepancies between these data, and if so for what dates.
+
+I can do this by joining the 2 datasts, and then looking at the 2 different versions
+of the variables from each dataset:
+
+```{r}
+stringency_latest %>% 
+  left_join(stringency_us_latest, by = c("State", "Year", "Month", "Day")) %>% 
+  filter(`C6_Stay at home requirements.x` != `C6_Stay at home requirements.y`) %>% 
+  select(State, Year, Month, Day, `C6_Stay at home requirements.x`, `C6_Stay at home requirements.y`) %>% 
+  arrange(State, Year, Month, Day) %>% 
+  nrow()
+
+stringency_latest %>% 
+  left_join(stringency_us_latest, by = c("State", "Year", "Month", "Day")) %>% 
+  filter(`C6_Stay at home requirements.x` > `C6_Stay at home requirements.y`) %>% 
+  count(State, Year, Month)
+
+stringency_latest %>% 
+  left_join(stringency_us_latest, by = c("State", "Year", "Month", "Day")) %>% 
+  filter(`C6_Stay at home requirements.x` < `C6_Stay at home requirements.y`) %>% 
+  count(State, Year, Month)
+```
+
+I am finding the the general file has many observations where the stay at home 
+orders are considered more strict, when compared to the US-specific file. Whereas
+there are only a few observations in 2022 for Alaska where the US-specific file
+has more stringent policies listed. This seems to reverse my understanding of
+how the data works, as I thought that the US-specific policy variables file
+incorporated national level policies, while the other did not.
+
+There seems to be something happening in April 2021, as this is where many of the
+states cease to have any observations with discrepancies.
+
+Looking at the notes for national policies, it seems there was a change in national
+"policy" on Apr 2 2021: On April 2, recommendations on the CDC's Travel During COVID-19 site were updated from "Delay travel and stay home to protect yourself and others from COVID-19" to not explicitly recommending stay at home. Additionally, the site was updated with the recommendation that fully vaccinated individuals can safely travel. 
+
+Therefore, the data from the general repo continues to have a `1` for most states
+up until Apr 2, while in the US data those states cease to have `1` many months before
+Apr 2021. This however would not make a difference to the variable we have considered
+constructing of how many days the state is at a `2`.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
