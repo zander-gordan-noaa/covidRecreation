@@ -401,9 +401,15 @@ stringency and fishing activity.
 
 ## Modeling Approach
 
-To model the relationship between the number of trips taken in each state-month
-and COVID policy stringency, we choose a Quasi-Poisson regression model. This
-choice of model accounts for the count nature of the outcome variable, number
+We model the relationship between the aggregate monthly number of salwater fishing trips trips taken in each state and the monthly COVID policy stringency as a Poisson regression model with the following conditional mean:
+
+$\mu_{im} = W_{it}*\exp(\alpha + \beta S_{it} + \lambda S_{it}^2 + \sum_{g=1}^{G} \sum_{m=1}^{M} z_{itg} d_{itm} \gamma_{itgm} + \sum_{y=1}^{Y} v_{ity}\delta_{ity})$
+
+where for state $i$ during period $t$, $\mu_{it}$ is the expected aggregate trips, $W_{it}$ is the population, $S_{it}$ is the daily average COVID policy stringency. The dummy variables $d_{im}$ equals one for if the observation is from state  
+
+<!-- Hellerstein, D.M., 1991. Using count data models in travel cost analysis with aggregate data. American journal of agricultural economics, 73(3), pp.860-866. -->
+
+This model accounts for the count nature of the outcome variable, number
 of trips taken, like a conventional Poisson model, but unlike a Poisson model it
 allows for over-dispersion of the data @VerHoef2007. Specifically, the conditional mean is 
 modeled as $\mu_i = \exp(pop_i)*\exp(x_i \beta)$, where $x_i$ is a vector of
