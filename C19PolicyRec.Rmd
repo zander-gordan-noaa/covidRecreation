@@ -37,7 +37,15 @@ editor_options:
 
 _Text based on plos sample manuscript, see <https://journals.plos.org/ploscompbiol/s/latex>_
 
-```{r,echo=FALSE,warning=FALSE,message=FALSE}
+```{r setup0,echo=FALSE}
+
+knitr::opts_chunk$set(echo = FALSE,message = FALSE,warning = FALSE)
+
+```
+
+
+```{r setup}
+
 library(feather)
 library(survey)
 options(survey.lonely.psu="adjust",multicore=TRUE)
@@ -52,9 +60,19 @@ library(ciTools)
 library(sandwich)
 library(lmtest)
 library(fst)
+
+library(fixest)
+library(car)
+library(clubSandwich)
+library(timetk)
+library(lubridate)
+
+library(ggpubr)
+library(ggeffects)
+
 ```
 
-```{r,echo=FALSE,warning=FALSE,eval=FALSE}
+```{r,eval=FALSE}
 
 #RUN ONCE TO CREATE DATASET: EVAL SET TO FALSE AFTER
 
@@ -129,7 +147,7 @@ stringency <- read_csv("data/OxCGRT_US_latest.csv") %>%
   arrange(State, Year, Month, Day) %>% 
   fill(StringencyIndex) %>% 
   group_by(State, Year, Month) %>%
-  summarise(Stringency = sum(StringencyIndex),
+  summarise(Stringency = mean(StringencyIndex),
             .groups = "drop") %>% 
   left_join(fips_codes_state, by = c("State" = "state_name")) %>% 
   rename(fips = state_code) %>% 
@@ -149,7 +167,20 @@ tripsTMPS <- tripsTMP %>%
   rename(State = state_name) %>% 
   select(Year,Month,Mode,Obs,Trips,Hrsf,Party,FIPS,State,Population,Stringency) %>% 
   mutate(TPC = Trips / Population,
-         Stringency = if_else(is.na(Stringency), 0, Stringency))
+         Stringency = if_else(is.na(Stringency), 0, Stringency),
+         TripsR=round(Trips,0),
+         StateF=as.factor(gsub(" ","",State)),
+         StateF=relevel(StateF,ref="Florida"),
+         MonthF=as.factor(as.numeric(Month)),
+         MonthF=relevel(MonthF,ref="6"),
+         YearF=as.factor(as.numeric(Year)),
+         YearF=relevel(YearF,ref="2019"),
+         sm=interaction(StateF,MonthF),
+         sm=relevel(sm,ref="Florida.6"),
+         ym=interaction(as.factor(Year),MonthF),
+         ym=relevel(ym,ref="2019.6"),
+         Year19s=Year-2019,
+         date = make_date(Year, Month,1))
 
 saveRDS(tripsTMPS, "tripsTMPS.rds")
 
@@ -158,6 +189,26 @@ saveRDS(tripsTMPS, "tripsTMPS.rds")
 ```{r loadData,echo=FALSE,warning=FALSE}
 #Load the final dataset
 tripsTMPS=readRDS("tripsTMPS.rds")
+
+no_data_sms<- tripsTMPS %>% 
+  filter(Mode == "7") %>% 
+  group_by(State, Month) %>% 
+  summarise(max_Trips = max(Trips), .groups = "drop") %>% 
+  filter(max_Trips == 0) %>% 
+  select(State, Month)
+
+data_for_new_model <- tripsTMPS %>% 
+  anti_join(no_data_sms, by = c("State", "Month"))
+
+no_data_sms5<- tripsTMPS %>%
+  filter(Mode == "5") %>%
+  group_by(State, Month) %>%
+  summarise(max_Trips = max(Trips), .groups = "drop") %>%
+  filter(max_Trips == 0) %>%
+  select(State, Month)
+
+data_for_new_model5 <- tripsTMPS %>%
+  anti_join(no_data_sms5, by = c("State", "Month"))
 
 ```
 
@@ -253,7 +304,7 @@ mbms <- mbms %>%
             by = c("State" = "state_name"))
 ```
 
-```{r private-boat-trips-seasonality-plot,echo=FALSE,warning=FALSE,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the peak month. The bold line gives a simple average of these relative monthly values across the 16 states."}
+```{r private-boat-trips-seasonality-plot,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the peak month. The bold line gives a simple average of these relative monthly values across the 16 states."}
 tripsTMPS %>%
   filter(Mode == 7 & Year == 2019) %>%
   group_by(State) %>% 
@@ -281,7 +332,7 @@ and Maine is not sampled in March or April either. In the [MRIP Survey Design Ma
 particular there are only 4 states with positive trips in January: Florida (with January trips equal to 43% of the peak value), North Carolina (37%), Alabama (27%), and
 Mississippi (21%).
 
-```{r charter-boat-trips-seasonality-plot,echo=FALSE,warning=FALSE,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the peak month. The bold line gives a simple average of these relative monthly values across the 16 states."}
+```{r charter-boat-trips-seasonality-plot,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the peak month. The bold line gives a simple average of these relative monthly values across the 16 states."}
 tripsTMPS %>%
   filter(Mode == 5 & Year == 2019) %>%
   group_by(State) %>% 
@@ -296,7 +347,7 @@ tripsTMPS %>%
   ggtitle("Charter Boats")
 ```
 
-```{r shore-trips-seasonality-plot,echo=FALSE,warning=FALSE,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the peak month. The bold line gives a simple average of these relative monthly values across the 16 states."}
+```{r shore-trips-seasonality-plot,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the peak month. The bold line gives a simple average of these relative monthly values across the 16 states."}
 tripsTMPS %>%
   filter(Mode == 3 & Year == 2019) %>%
   group_by(State) %>% 
@@ -317,7 +368,7 @@ Figures \@ref(fig:charter-boat-trips-seasonality-plot) and
 trips, respectively.
 
 
-```{r trips-seasonality-plot,echo=FALSE,warning=FALSE,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State, relative to annual total. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the total annual trips for the state. The bold line gives a simple average of these relative monthly values across the 16 states."}
+```{r trips-seasonality-plot,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State, relative to annual total. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the total annual trips for the state. The bold line gives a simple average of these relative monthly values across the 16 states."}
 mode_names <- c(
                     `3` = "Shore Trips",
                     `5` = "Charter Trips",
@@ -348,7 +399,7 @@ state-months with more than 20% of annual trips come from the Northern states of
 Maine, New Hampshire, Massachusetts, Delaware and Rhode Island, with July in 
 Mississippi as the exception.
 
-```{r COVID-stringency-phillips-curve-FL,echo=FALSE,warning=FALSE,fig.cap="COVID Stringency vs relative fishing trips over time for Florida, private mode. Each label on the figure plots values for a single month, with sequential months connected by the path. The y-axis values are the trips for the month in 2020, divided by the average trips in that month from 2017 through 2019.",fig.height=6,fig.width=5,fig.align='center'}
+```{r COVID-stringency-phillips-curve-FL,fig.cap="COVID Stringency vs relative fishing trips over time for Florida, private mode. Each label on the figure plots values for a single month, with sequential months connected by the path. The y-axis values are the trips for the month in 2020, divided by the average trips in that month from 2017 through 2019.",fig.height=6,fig.width=5,fig.align='center'}
 tripsTMPS %>% 
   filter(Mode == 7) %>% 
   group_by(State, Month) %>% 
@@ -370,7 +421,7 @@ changes exhibit a downward slope. Note that Florida was chosen for this exhibit 
 only state with sufficient fishing activity throughout the entire year to create
 these ratios for all 12 months of the year.
 
-```{r pString,echo=FALSE,warning=FALSE,fig.cap="Monthly 2020 stringency Index by State",fig.height=6,fig.width=5,fig.align='center'}
+```{r pString,fig.cap="Monthly 2020 stringency Index by State",fig.height=6,fig.width=5,fig.align='center'}
 covid_colors <- c("NY" = "red", "FL" = "blue", "AL" = "darkgreen", "other" = "grey")
 covid_alpha <- c("NY" = 1, "FL" = 1, "AL" = 1, "other" = 0.5)
 tripsTMPS %>% 
@@ -398,6 +449,53 @@ variation in COVID policy over time. The substantial independent variation in th
 series affords the opportunity to examine the relationship between COVID policy
 stringency and fishing activity.
 
+```{r decompPs, fig.cap="Seasonality by State: Private",fig.height=6,fig.width=5,fig.align='center'}
+
+
+dSM=data_for_new_model %>%
+  group_by(Mode,State) %>%
+  tk_stl_diagnostics(date, box_cox_vec(TripsR),.message = FALSE)
+
+pDecompS=function(m,t) {
+  
+  zz=subset(dSM,Mode==m)
+  
+  par(mfrow=c(4,4))
+  
+  if(t=="season") {
+    sapply(unique(zz$State),FUN=function(x) plot(zz$season[zz$State==x],main=x,type="l"))
+    } else {
+      sapply(unique(zz$State),FUN=function(x) plot(zz$trend[zz$State==x],main=x,type="l"))
+      }
+
+par(mfrow=c(1,1))
+
+}
+
+pDecompS(7,"season")
+
+```
+
+
+```{r decompPt, fig.cap="Trend by State: Private",fig.height=6,fig.width=5,fig.align='center'}
+pDecompS(7,"trend")
+```
+
+```{r decompCs, fig.cap="Seasonality by State: Charter",fig.height=6,fig.width=5,fig.align='center'}
+pDecompS(5,"season")
+```
+
+```{r decompCt, fig.cap="Trend by State: Charter",fig.height=6,fig.width=5,fig.align='center'}
+pDecompS(5,"trend")
+```
+
+```{r decompSs, fig.cap="Seasonality by State: Shore",fig.height=6,fig.width=5,fig.align='center'}
+pDecompS(3,"season")
+```
+
+```{r decompSt, fig.cap="Trend by State: Shore",fig.height=6,fig.width=5,fig.align='center'}
+pDecompS(3,"trend")
+```
 
 ## Modeling Approach
 
@@ -466,7 +564,7 @@ side of the curve.
 
 
 
-```{r sumSat,echo=FALSE,warning=FALSE,results='asis',message=FALSE}
+```{r sumSat,results='asis',eval=FALSE}
 
 # ssbym=as.data.frame(t(aggregate(cbind(Trips,Hrsf,Party,Stringency)~Mode,data=tripsTMPS,
 #           FUN=function(x) cbind(mean(x), median(x), sd(x)))))
@@ -491,116 +589,151 @@ st(tripsTMPS %>%
 
 ```
 
-```{r noDataSms, echo=FALSE,warning=FALSE}
-no_data_sms<- tripsTMPS %>% 
-  filter(Mode == "7") %>% 
-  group_by(State, Month) %>% 
-  summarise(max_Trips = max(Trips), .groups = "drop") %>% 
-  filter(max_Trips == 0) %>% 
-  select(State, Month)
 
-data_for_new_model <- tripsTMPS %>% 
-  anti_join(no_data_sms, by = c("State", "Month"))
+
+
+```{r pfe,eval=FALSE}
+
+rm=function(m,mn,y){
+  
+  if(m==5) {
+    bd=data_for_new_model5
+  } else {
+      bd=data_for_new_model
+    }
+
+  d=subset(bd,Mode==m & Year %in% y)
+  
+  #Fixed effect poisson with:
+  #Cluster robust standard errors with small-sample (small number of clusters) adjustment
+  #Pustejovsky, J.E. and Tipton, E., 2018. Small-sample methods for cluster-robust
+  #variance estimation and hypothesis testing in fixed effects models. Journal of Business
+  #& Economic Statistics, 36(4), pp.672-683.
+  
+  #Baseline two-way fixed effect specification
+  r0=fepois(TripsR ~ Stringency + I(Stringency^2) | StateF + YearF^MonthF ,
+           data=d,offset = ~log(Population),
+           vcov = function(x) vcovCR(x, type = "CR2",test = "Satterthwaite",cluster=d$StateF))   
+  
+  r= fepois(TripsR ~ Stringency + I(Stringency^2) | StateF^MonthF + StateF[Year19s] ,
+           data=d,offset = ~log(Population),
+           vcov = function(x) vcovCR(x, type = "CR2",test = "Satterthwaite",cluster=d$StateF)) 
+  
+  
+  #Dataset to predict trips as a function of stringency
+  #holding everything else constant.
+  #Using June 2019 in Florida: zero stringency should correspond with
+  #the predicted trips for this period in absence of stringency policies
+  #Function to calculate the predicted trips
+  #and associated confidence intervals using the 
+  #delta method
+  #The base prediction is for Wave 6 in Florida during 2019
+  pDM=function(m,pop,x) {
+    fe=fixef(m)
+    feB=fe$`StateF^MonthF`["Florida_6"] + fe$StateF["Florida"]
+    f=paste0(pop,"*exp(",feB," + ",x,"*Stringency + `I(Stringency^2)`*",x,"^2)")
+    deltaMethod(m$coefficients,f,vcov=m$cov.scaled)}
+  
+  #Population in Wave 6 in Florida during 2019
+  popE=d$Population[d$StateF=="Florida" & d$Year19s==0 & d$MonthF==6]
+
+  p=t(sapply(0:100,function(x) pDM(r,popE,x)))
+  p=as.data.frame(apply(p,2,unlist))
+  
+  pp=ggplot(p, aes(x = 0:100, y = Estimate, group = 1)) + 
+    geom_line(col='black') + 
+    geom_ribbon(aes(ymin = `2.5 %`, ymax = `97.5 %`), alpha = 0.1) +
+    labs(title = mn,
+         y="Expected June 2019 Florida Trips",
+         x="Stringency") +
+    geom_hline(yintercept=p[1,"Estimate"]) +
+    scale_y_continuous(labels = scales::label_number(suffix = " M", scale = 1e-6))
+  
+  #Scaling the trip predictions to be relative to the base period
+  ps=p
+  ps[,"2.5 %"]=100*(ps[,"2.5 %"]-ps[1,"Estimate"])/ps[1,"Estimate"]
+  ps[,"97.5 %"]=100*(ps[,"97.5 %"]-ps[1,"Estimate"])/ps[1,"Estimate"]
+  ps[,"Estimate"]=100*(ps[,"Estimate"]-ps[1,"Estimate"])/ps[1,"Estimate"]
+  
+  pps=ggplot(ps, aes(x = 0:100, y = Estimate, group = 1)) + 
+    geom_line(col='black') + 
+    geom_ribbon(aes(ymin = `2.5 %`, ymax = `97.5 %`), alpha = 0.1) +
+    labs(title = mn,
+         y="% Difference from Expected June 2019 Florida Trips ",
+         x="Stringency") +
+    geom_hline(yintercept=0)
+  
+  #Elasticity calculations
+  pme=t(sapply(0:100,FUN=function(x) 
+    deltaMethod(r$coefficients,paste0(x,"*(Stringency + `I(Stringency^2)`*2*",x,")"),vcov=r$cov.scaled)))
+  pme=as.data.frame(apply(pme,2,unlist))
+  
+  ppe=ggplot(pme, aes(x = 0:100, y = Estimate, group = 1)) + 
+    geom_line(col='black') + 
+    geom_ribbon(aes(ymin = `2.5 %`, ymax = `97.5 %`), alpha = 0.1) +
+    labs(title = mn,
+         y="Trip Elasticity",
+         x="Stringency") +
+    geom_hline(yintercept=0)
+  
+  
+  return(list(reg0=r0,reg=r,pred=p,preds=ps,pplot=pp,pplots=pps,elast=pme,elastP=ppe))
+  
+}
+
+pm=rm(7,"Private Boats",2017:2021)
+cm=rm(5,"Charter Boats",2017:2021)
+sm=rm(3,"Shore",2017:2021)
+
+#Saving model and prediction objects because the predictions take long to run.
+saveRDS(pm,"pm.rds")
+saveRDS(cm,"cm.rds")
+saveRDS(sm,"sm.rds")
+
+```
+
+```{r regTbl,results='asis'}
+
+#Reading model and prediction objects
+pm=readRDS("pm.rds")
+cm=readRDS("cm.rds")
+sm=readRDS("sm.rds")
+
+texreg(list(pm$reg,cm$reg,sm$reg),custom.model.names = c("Private","Charter","Shore"),
+       label="regResultsSS",caption.above = TRUE,digits=4,include.deviance=FALSE,include.bic=TRUE,
+        caption = "Poisson Fixed Effect Regression of Trips on Covid-19 Stringency, by Mode",include.groups=FALSE,
+       custom.note = "%stars. SEs clustered by state with small-sample adjustment.")
+
+texreg(list(pm$reg0,cm$reg0,sm$reg0),custom.model.names = c("Private","Charter","Shore"),include.groups=FALSE,
+       label="regResultsSS0",caption.above = TRUE,digits=4,include.deviance=FALSE,include.bic=TRUE,
+       caption = "Poisson Fixed Effect Regression of Trips on Covid-19 Stringency, by Mode (2-way FE)",
+       custom.note = "%stars. SEs clustered by state with small-sample adjustment.")
+
 ```
 
 
-```{r pfe,echo=FALSE,warning=FALSE}
-
-#Fixed effect poisson regressions of trips on stringency index with a population offset
-#Modeling trips per capita
-mf=formula(Trips ~ State + Month + I(Stringency/100) + I((Stringency/100)^2) + offset(log(Population)))
-pm=glm(mf,data=data_for_new_model,family = quasipoisson,subset=Mode==7 )
-cm=glm(mf,data=data_for_new_model,family = quasipoisson,subset=Mode==5 )
-sm=glm(mf,data=data_for_new_model,family = quasipoisson,subset=Mode==3 )
-
-```
-
-```{r regTbl,echo=FALSE,warning=FALSE,results='asis'}
-
-staten=gsub("State","",names(coef(pm)))[2:16]
-
-texreg(list(pm,cm,sm),custom.model.names = c("Private","Charter","Shore"),single.row = FALSE,digits=3,label="regResults",
-       caption = "Quasi-Poisson Fixed Effect Regression of Trips on Covid-19 Stringency, by Mode",
-       #custom.coef.names = c("Intercept",staten,month.name[-1],
-       #                       "Stringency/100","(Stringency/100)^2"),
-       custom.coef.map=list("(Intercept)" = "Intercept",
-                            "I(Stringency/100)"="Stringency/100","I((Stringency/100)^2)"="(Stringency/100)^2"),
-       include.aic=FALSE,include.bic=FALSE,include.loglik=FALSE,caption.above = TRUE,
-       custom.note = "%stars. The base state is Alabama and the base Month is January.",
-       custom.gof.rows = list("Scale" = c(summary(pm)$dispersion,summary(cm)$dispersion,summary(sm)$dispersion)))
-
-
-```
-
-
-```{r tripStringRel,echo=FALSE,warning=FALSE,fig.cap="Predicted Trips as a Function of the Stringency Index",fig.height=8,fig.width=4}
-
-#Dataset to predict trips as a function of stringency
-#holding everything else constant.
-#Using June 2020 in Florida: zero stringency should correspond with
-#the predicted trips for this period in absence of stringency policies
-nd=data.frame(State="Florida",Month="06",
-              Population=with(tripsTMPS,Population[State=="Florida" & Month=="01" & Mode==7 & Year==2020]),
-              Stringency=seq(0,3000,by=50))
+```{r tripStringRelSC,fig.cap="Predicted Trips as a Function of the Stringency Index: Levels",fig.height=8,fig.width=4}
 
 #Predicted trips as a function of stringency, including confidence intervals
-pd=add_ci(nd,pm)
-cd=add_ci(nd,cm)
-sd=add_ci(nd,sm)
-
-#Plot predicted trips and confidence intervals
-par(mfrow=c(3,1))
-
-plot(y=pd$pred/1000000,x=pd$Stringency,type="l",ylim=c(2,5),xlim=c(3000,0),
-     main="Private Boats",
-     xlab="Stringency Index (Monthly sum of daily records: higher is more stringent)",
-     ylab="Millions of Fishing Trips (Scaled to June 2020 in FL)")
-lines(y=pd$LCB0.025/1000000,x=pd$Stringency,lty=2)
-lines(y=pd$UCB0.975/1000000,x=pd$Stringency,lty=2)
-abline(h=pd$pred[pd$Stringency==0]/1000000)
-
-plot(y=cd$pred/1000000,x=cd$Stringency,type="l",ylim=c(.04,.09),xlim=c(3000,0),
-     main="Charter Boats",
-     xlab="Stringency Index (Monthly sum of daily records: higher is more stringent)",
-     ylab="Millions of Fishing Trips (Scaled to June 2020 in FL)")
-lines(y=cd$LCB0.025/1000000,x=cd$Stringency,lty=2)
-lines(y=cd$UCB0.975/1000000,x=cd$Stringency,lty=2)
-abline(h=cd$pred[cd$Stringency==0]/1000000)
-
-plot(y=sd$pred/1000000,x=sd$Stringency,type="l",ylim=c(3,7),xlim=c(3000,0),
-     main="Shore",
-     xlab="Stringency Index (Monthly sum of daily records: higher is more stringent)",
-     ylab="Millions of Fishing Trips (Scaled to June 2020 in FL)")
-lines(y=sd$LCB0.025/1000000,x=sd$Stringency,lty=2)
-lines(y=sd$UCB0.975/1000000,x=sd$Stringency,lty=2)
-abline(h=sd$pred[sd$Stringency==0]/1000000)
-
-par(mfrow=c(1,1))
-
-#Use this to reverse the x-axis: xlim=c(0,3000)
-
-#Don't think that we need robust standard error with the
-#Quasi-poisson, but here is how you would calculate them
-#coeftest(pm, vcov = vcovHC(pm, type="HC4"))
-
-#Bootstrapped prediction CI to verify (takes long to run as currently coded)
-# library(boot)
-# 
-# bf=function(d,i){
-#   pm=glm(mf,data=d[i,],family = quasipoisson )
-#   pd=predict(pm,newdata = nd,type="response")/1000000
-#   return(pd)
-# }
-# 
-# bcp=boot(subset(tripsTMPS,Mode==7),bf,R=1000)
-# zz=sapply(1:61,FUN=function(i) boot.ci(boot.out = bcp, type = c("bca"),index=i)$bca)
-# 
-# plot(pd,type="l",ylim=c(2,6))
-# lines(zz[4,],lty=2)
-# lines(zz[5,],lty=2)
+pa=ggarrange(pm$pplot,cm$pplot,sm$pplot,ncol = 1, nrow = 3)
+annotate_figure(pa,fig.lab = "Note: Based on Trips in Florida During June of 2019",fig.lab.pos = "bottom.left")
 
 ```
 
+```{r tripStringRelSS,fig.cap="Predicted Trips as a Function of the Stringency Index",fig.height=8,fig.width=4}
+
+#Predicted trips as a function of stringency, including confidence intervals
+pas=ggarrange(pm$pplots,cm$pplots,sm$pplots,ncol = 1, nrow = 3)
+annotate_figure(pas,fig.lab = "Note: Based on Trips in Florida During June of 2019",fig.lab.pos = "bottom.left")
+
+```
+
+```{r tripStringElast,fig.cap="Elasticity as a Function of the Stringency Index",fig.height=8,fig.width=4}
+
+#Elasticity as a function of stringency, including confidence intervals
+pe=ggarrange(pm$elastP,cm$elastP,sm$elastP,ncol = 1, nrow = 3)
+
+```
 
 ## Discussion
 

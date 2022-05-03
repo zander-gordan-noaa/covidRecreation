@@ -30,7 +30,8 @@ getMRIP = function(fn) {
 mripZ=list("ps_2017_sas.zip",
            "ps_2018_sas.zip",
            "ps_2019_sas.zip",
-           "ps_2020_sas.zip")
+           "ps_2020_sas.zip",
+           "ps_2021_sas.zip")
 
 #Download and extract the mrip survey data to the csv directory
 lapply(mripZ,FUN=getMRIP)
@@ -50,15 +51,15 @@ trips <- subset(rbindlist( l ,fill=TRUE))
 do.call(file.remove, list(flist))
 
 #Add the zip codes back to the data
-zipsA=read_sas("../mrip/zipCodes/zips_2004_2017.sas7bdat")
-zipsB=read_sas("../mrip/zipCodes/se_2018_2020.sas7bdat")[,c("ID_CODE","ZIP")]
-zips=rbind(zipsA,zipsB)
+#zipsA=read_sas("../mrip/zipCodes/zips_2004_2017.sas7bdat")
+#zipsB=read_sas("../mrip/zipCodes/se_2018_2020.sas7bdat")[,c("ID_CODE","ZIP")]
+#zips=rbind(zipsA,zipsB)
 
-trips=merge(trips,zips,by="ID_CODE",all.x = TRUE)
-trips$ZIP[trips$YEAR<2004]=trips$ZIP.x[trips$YEAR<2004]
-trips$ZIP[trips$YEAR>2003]=trips$ZIP.y[trips$YEAR>2003]
-trips=subset(trips, select=-c(ZIP.x,ZIP.y))
+#trips=merge(trips,zips,by="ID_CODE",all.x = TRUE)
+#trips$ZIP[trips$YEAR<2004]=trips$ZIP.x[trips$YEAR<2004]
+#trips$ZIP[trips$YEAR>2003]=trips$ZIP.y[trips$YEAR>2003]
+#trips=subset(trips, select=-c(ZIP.x,ZIP.y))
 
 
 #Save the combined trip and files in feather format
-write_feather(trips,"trips1720.feather")
+write_feather(trips,"trips1721.feather")
