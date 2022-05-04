@@ -521,9 +521,9 @@ rm=function(m,mn,y){
   if(m==5) {
     bd=data_for_new_model5
   } else {
-      bd=data_for_new_model
-    }
-
+    bd=data_for_new_model
+  }
+  
   d=subset(bd,Mode==m & Year %in% y)
   
   #Fixed effect poisson with:
@@ -534,13 +534,16 @@ rm=function(m,mn,y){
   
   #Baseline two-way fixed effect specification
   r0=fepois(TripsR ~ Stringency + I(Stringency^2) | StateF + YearF^MonthF ,
-           data=d,offset = ~log(Population),
-           vcov = function(x) vcovCR(x, type = "CR2",test = "Satterthwaite",cluster=d$StateF))   
+            data=d,offset = ~log(Population),
+            vcov = function(x) vcovCR(x, type = "CR2",cluster=d$StateF))   
+  
+  ses0=coef_test(r0,vcov="CR2",cluster=d$State,test = "Satterthwaite")
   
   r= fepois(TripsR ~ Stringency + I(Stringency^2) | StateF^MonthF + StateF[Year19s] ,
-           data=d,offset = ~log(Population),
-           vcov = function(x) vcovCR(x, type = "CR2",test = "Satterthwaite",cluster=d$StateF)) 
+            data=d,offset = ~log(Population),
+            vcov = function(x) vcovCR(x, type = "CR2",cluster=d$StateF)) 
   
+  ses=coef_test(r,vcov="CR2",cluster=d$State,test = "Satterthwaite")
   
   #Dataset to predict trips as a function of stringency
   #holding everything else constant.
@@ -558,7 +561,7 @@ rm=function(m,mn,y){
   
   #Population in Wave 6 in Florida during 2019
   popE=d$Population[d$StateF=="Florida" & d$Year19s==0 & d$MonthF==6]
-
+  
   p=t(sapply(0:100,function(x) pDM(r,popE,x)))
   p=as.data.frame(apply(p,2,unlist))
   
@@ -599,7 +602,7 @@ rm=function(m,mn,y){
     geom_hline(yintercept=0)
   
   
-  return(list(reg0=r0,reg=r,pred=p,preds=ps,pplot=pp,pplots=pps,elast=pme,elastP=ppe))
+  return(list(reg0=r0,ses0=ses0,reg=r,ses=ses,pred=p,preds=ps,pplot=pp,pplots=pps,elast=pme,elastP=ppe))
   
 }
 
@@ -624,7 +627,8 @@ sm=readRDS("sm.rds")
 texreg(list(pm$reg,cm$reg,sm$reg),custom.model.names = c("Private","Charter","Shore"),
        booktabs = TRUE,use.packages = FALSE,threeparttable=TRUE,
        label="regResults",caption.above = TRUE,digits=4,include.deviance=FALSE,include.bic=TRUE,include.loglik=FALSE,
-        caption = "Poisson Fixed Effect Regression of Trips on Covid-19 Stringency, by Mode",include.groups=FALSE,
+       override.pvalues=list(pm$ses$p_Satt,cm$ses$p_Satt,sm$ses$p_Satt),
+       caption = "Poisson Fixed Effect Regression of Trips on Covid-19 Stringency, by Mode",include.groups=FALSE,
        custom.note = "\n\\item %stars. SEs clustered by state \n\\item with small-sample adjustment.\n")
 
 ```
