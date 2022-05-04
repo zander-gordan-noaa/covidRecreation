@@ -62,4 +62,4 @@ do.call(file.remove, list(flist))
 
 
 #Save the combined trip and files in feather format
-write_feather(trips,"trips1721.feather")
+write_feather(trips,"data/trips1721.feather")
