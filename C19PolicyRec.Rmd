@@ -12,14 +12,28 @@ author:
     email: christopher.liese@noaa.gov
     affiliation: NOAA Fisheries Southeast Fisheries Science Center
 address:
-  - code: ECS Federal
+  - code: ECS
     address: 2750 Prosperity Ave STE 600, Fairfax, VA 22031
   - code: NOAA Fisheries Southeast Fisheries Science Center
     address: 75 Virginia Beach Drive, Miami, FL, 33149
 header-includes:
    - \usepackage{threeparttable}
 abstract: |
-  Governments responded to the Covid-19 pandemic with different policies to curtail the spread of the virus. We show how sportfishing levels are related to the stringency of Covid-19 policies. Specifically, the number of sportfishing trips bears an inverse-U-shaped relationship with Covid-19 policy stringency. 
+  Governments responded to the Covid-19 pandemic with different policies to curtail the spread of the virus. We show how sportfishing levels are related to the stringency of Covid-19 policies. Specifically, we measure the total
+  number of resident sportfishing trips taken each month in each of 16 U.S. states covered by the 
+  Marine Recreational Information Program, and relate this to a state-level index
+  of COVID policy stringency developed by the Oxford COVID Government Response Tracker
+  program. We model the number of recreational fishing trips taken in each state-month
+  as non-linear function of the stringency index, using a fixed effect Poisson
+  regression model with state-specific seasonality and time trends. We
+  estimate separate models for different fishing modes, and for fishing trips
+  taken on private boats find that at moderate levels of stringency the number
+  of trips may have increased by approximately 20%, while at high levels of stringency
+  like those experienced in many states in March and April of 2020, trips may have stayed
+  constant or declined by 10-20%. Similar inverse-U shaped relationships between
+  trips and stringency are found for fishing trips from the shore and from charter 
+  boats, though with larger point estimates of the impacts but greater uncertainty
+  associated with those estimates.
   
 bibliography: C19PolicyRec.bib
 output:
@@ -212,7 +226,7 @@ max_actual_stringency <- tripsTMPS %>% select(Stringency) %>% max %>% floor
 
 # Introduction
 
-Saltwater angling is a major outdoor activity in the U.S. with expenditures on fishing trips on totaling more than $10 billion annually
+Saltwater angling is a major outdoor activity in the U.S., with expenditures on fishing trips on totaling more than $10 billion annually
 as of 2017 @lovell2020economic. Roughly 4% of Americans participate in saltwater fishing compared with around around 20% for running, the most common outdoor recreation activity @2019OutdoorReport.  Furthermore, in some marine fisheries, recreational angling is a substantial component of harvest, especially in the Southeastern US, where sportfishing can account for a large share of the harvest of commercially and culturally significant species @lewin2019potential.
 
 The COVID-19 pandemic and ensuing policy responses had far-reaching social and economic implications, and marine angling is no exception. Landry et. al. @landry2021has summarize the potential pathways through which COVID-19 and related policy responses may affect outdoor recreation. For recreational fishing the potential pathways are as follows:
@@ -231,14 +245,12 @@ The net effect of the four pathways depends on prevailing conditions at the time
 
 We use data on the estimated monthly number of saltwater fishing trips from states on the U.S. east coast along with a monthly, state-level measure of COVID-19 policy stringency to examine the relationship between the stringency of COVID-19 policy and the  level of marine angling activity. Our results suggest that the relationship is non-monotonic, whereby the number of fishing trips increases at moderate levels of COVID-19 policy, but declines at higher levels. This finding is important to understanding how people respond to measures aimed at containing virus spread and can help in planning during future pandemics.
 
-In this paper, we measure the net effect of stringency policies on recreational effort over the range of stringency implemented accross the states in the eastern U.S. In particular, we investigate the relationship between marine fishing trips and COVID 19 policy stringency. It has been largely understood that COVID 19 exerted a positive influence on outdoor recreation activity generally, and angling in particular. However, the pandemic ushered in a complex tangle of causal pathways, including some which dampened fishing activity, and catalyzed a broad range of social changes, many of which will persist well into the future. It is thus necessary to understand in greater detail the individual factors and causal pathways through which the pandemic bump in fishing activity operated if we wish to obtain general insights which can inform fisheries management going forward. Specifically, if COVID-19 has changed fishing effort in a persistent fashion then management may need to respond with different regulations and management strategies in the future.
-
 # Methods
 
 ## Data
 
 To conduct our analysis, we construct a panel dataset at the state-month level spanning 2017 through 2021 for 16 US states, by merging two primary data sources: (1) the Marine Recreational Information Program (MRIP), which provides the necessary angler survey data to construct monthly estimates of the fishing activity in each state, providing our dependent variable, and (2) the Oxford COVID Government Response Tracker (OxCGRT), which provides fine-grained (daily) variation in the level of COVID policy stringency in each of the US states, which we collapse to the monthly level to provide our key independent variable.
-Below, we describe in greater detail these two major data sources, as well as some supplementary data used in the analysis,  and our methodology for processing these data sources to produce our panel dataset.
+Below, we describe in greater detail these two major data sources, as well as state population data used in the analysis,  and our methodology for processing these data sources to produce our panel dataset.
 
 ### MRIP
 
@@ -250,15 +262,15 @@ estimates of the number of trips taken by in-state residents.
 
 We assemble monthly observations from 2017 through 2021 for three different modes of fishing: private boats, charter boats, and shore fishing. With `r length(unique(tripsTMPS$Year))` years, `r length(unique(tripsTMPS$Month))` months in each year and `r length(unique(tripsTMPS$State))` states, the data set for each mode could potentially have `r length(tripsTMPS$Trips[tripsTMPS$Mode==7])` observations. However, the data collection is not conducted for certain state-months for which
 there is known to be minimal fishing activity for a given mode, which are typically
-the winter months in colder states. There are a total of 35 state-months for
+the winter months in colder states.^[The [MRIP Data User Handbook](https://media.fisheries.noaa.gov/2021-09/MRIP%20Data%20User%20Handbook%20Updated%202021-09-30.pdf) explains this in Table 1: many states are not sampled during January and February, and Maine for instance is not sampled in March or April either. In the [MRIP Survey Design Manual](https://media.fisheries.noaa.gov/2021-09/MRIP-Survey-Design-and-Statistical-Methods-2021-09-15.pdf), Figure 6 shows the state-month's which do not have coverage in white, along with detail of the 2020 data quality for state-months which are covered. Since these observations are non-randomly missing, there is no reason to estimate a hurdle or 2-stage model, and we simply drop these state-months from our estimation samples.] The only states for which data is 
+collected in all months for all modes are Florida, Alabama, and North Carolina. There are a total of 35 state-months for
 which no data is collected for the private boat and shore modes, so data for these 
 modes includes only 785 observations, and 45 state-months
-have no data collection for the charter mode, leading to 735 observations. The only states for which data is 
-collected in all months for all modes are Florida, Alabama, and North Carolina.
+have no data collection for the charter mode, leading to 735 observations. 
 
 The MRIP program currently consists of 2 primary data collection efforts, the Fishing Effort Survey (FES), and the Access Point Angler Intercept Survey (APAIS). The FES is a mail survey which asks anglers to recall how many trips they have been on recently, in order to get information on the total level of fishing activity. The APAIS is an in-person survey conducted at common fishing
 locations by field workers, and asks for information about the fishing trip they are on when surveyed, as well as sampling some of the fish they catch in order to get valid length information for the caught fish, as well as species composition data. During 2020 the FES was able to continue unhindered, while the APAIS was suspended for at least some
-length of time nationwide in March and April 2020, with data collection resuming unevenly throughout the country in May and June (wave 3) according to local conditions^[see Figure 6 of the MRIP survey design manual for more information on which states resumed data collection at which times: https://media.fisheries.noaa.gov/2021-09/MRIP-Survey-Design-and-Statistical-Methods-2021-09-15.pdf].
+length of time nationwide in March and April 2020, with data collection resuming unevenly throughout the country in May and June (wave 3) according to local conditions^[see Figure 6 of the [MRIP survey design manual](https://media.fisheries.noaa.gov/2021-09/MRIP-Survey-Design-and-Statistical-Methods-2021-09-15.pdf) for more information on which states resumed data collection at which times.].
 We are able to construct the total trip estimates for all state-months in 2020 in the same fashion as in 2019 and earlier years, since the FES was able to continue unhindered. However, other outcome variables which might have been investigated,
 such as the average party size on a fishing trip, are affected by the APAIS suspension and can not be estimated for many
 state-months in early 2020, which is when the largest changes in COVID-19 policy stringency occur, and therefore we can not examine the relationship between policy stringency and these outcomes due to intractable missing data problems.
@@ -272,97 +284,20 @@ Our key independent variable, on state-month level COVID stringency, comes from 
 
 We take the daily data for each state and collapse it to a state-month level dataset by taking the average value of the Stringency index for each day in the month. This data is then merged with the MRIP data for analysis.
 
-### Supplementary Data
+### Population Data
 
 In order to place the MRIP data on a comparable basis across states, we include information
 on state populations using annual population estimates for each state in the sample. For 2017-2019, these are estimates from the American Community Survey, and for 2020 and 2021 we use figures from the Decennial Census.
 
 ### Descriptive Statistics
 
-```{r, echo=FALSE,warning=FALSE}
-tpclt20=aggregate(TPC~State+Mode,FUN=mean,data=tripsTMPS,subset=Year<2020)
-names(tpclt20)[3]="TPClt20"
-#Average trips, stringency, and trips per capita by state and mode for 2020
-mbms=aggregate(cbind(Trips,Stringency,TPC)~State+Mode,FUN=mean,data=tripsTMPS,subset=Year==2020)
-#Combine the means for 2020 and years prior by state and mode
-mbms=merge(mbms,tpclt20,by=c("State","Mode"))
-#Ratio of the average trips per capita in 2020 to the average trips per capita in prior years by state and mode
-mbms$TPCdTPClt20=mbms$TPC/mbms$TPClt20
-mbms=mbms[order(mbms$Mode,mbms$State),]
-# add state abbreviations
-mbms <- mbms %>% 
-  left_join(fips_codes %>% select(state, state_name), 
-            by = c("State" = "state_name"))
-```
-
-```{r private-boat-trips-seasonality-plot,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the peak month. The bold line gives a simple average of these relative monthly values across the 16 states."}
-tripsTMPS %>%
-  filter(Mode == 7 & Year == 2019) %>%
-  group_by(State) %>% 
-  mutate(relative_TPC = TPC / max(TPC)) %>% 
-  ggplot(aes(x=Month, y=relative_TPC, group=State)) +
-  geom_line(alpha = 0.08) +
-  stat_summary(mapping = aes(x=Month,  y=relative_TPC, group = 1), 
-               fun = "mean", 
-               geom = "line",
-               inherit.aes = FALSE) +
-  ylab("Trips (relative to peak trips)") +
-  ggtitle("Private Boats")
-```
-
-Figure \@ref(fig:private-boat-trips-seasonality-plot) displays seasonal trends
-in the level of trips across the 16 states in the dataset. Each grey line plots
-the seasonal pattern for one state, with the values scaled relative to the state's
-peak month. The black line provides a simple average of these relative values across
-the 16 states within each month, so that the black line represents the composite
-national-level seasonality trend in fishing trips among these 16 states. July is
-both the modal peak month among the states, and the peak month for the national 
-trend. There are many state-months in which 0 trips are recorded,^[The [MRIP Data User Handbook](https://media.fisheries.noaa.gov/2021-09/MRIP%20Data%20User%20Handbook%20Updated%202021-09-30.pdf) explains this in Table 1: many states are not sampled during January and February, and Maine is not sampled in March or April either. In the [MRIP Survey Design Manual](https://media.fisheries.noaa.gov/2021-09/MRIP-Survey-Design-and-Statistical-Methods-2021-09-15.pdf), Figure 6 shows the state-month's which do not have coverage in white, along with detail of the 2020 data quality for state-months which are covered. So these should *not* be considered "true zeros", but rather non-randomly missing data, as the state-months which are not covered are such due to the presumption of low fishing activity attributable to unfavorable weather.] and in 
-particular there are only 4 states with positive trips in January: Florida (with January trips equal to 43% of the peak value), North Carolina (37%), Alabama (27%), and
-Mississippi (21%).
-
-```{r charter-boat-trips-seasonality-plot,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the peak month. The bold line gives a simple average of these relative monthly values across the 16 states."}
-tripsTMPS %>%
-  filter(Mode == 5 & Year == 2019) %>%
-  group_by(State) %>% 
-  mutate(relative_TPC = TPC / max(TPC)) %>% 
-  ggplot(aes(x=Month, y=relative_TPC, group=State)) +
-  geom_line(alpha = 0.08) +
-  stat_summary(mapping = aes(x=Month,  y=relative_TPC, group = 1), 
-               fun = "mean", 
-               geom = "line",
-               inherit.aes = FALSE) +
-  ylab("Trips (relative to peak trips)") +
-  ggtitle("Charter Boats")
-```
-
-```{r shore-trips-seasonality-plot,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the peak month. The bold line gives a simple average of these relative monthly values across the 16 states."}
-tripsTMPS %>%
-  filter(Mode == 3 & Year == 2019) %>%
-  group_by(State) %>% 
-  mutate(relative_TPC = TPC / max(TPC)) %>% 
-  ggplot(aes(x=Month, y=relative_TPC, group=State)) +
-  geom_line(alpha = 0.08) +
-  stat_summary(mapping = aes(x=Month,  y=relative_TPC, group = 1), 
-               fun = "mean", 
-               geom = "line",
-               inherit.aes = FALSE) +
-  ylab("Trips (relative to peak trips)") +
-  ggtitle("Shore")
-```
-
-Figures \@ref(fig:charter-boat-trips-seasonality-plot) and
-\@ref(fig:shore-trips-seasonality-plot) replicate Figure 
-\@ref(fig:private-boat-trips-seasonality-plot), but for charter and shore mode
-trips, respectively.
-
 
 ```{r trips-seasonality-plot,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State, relative to annual total. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the total annual trips for the state. The bold line gives a simple average of these relative monthly values across the 16 states."}
 mode_names <- c(
-                    `3` = "Shore Trips",
-                    `5` = "Charter Trips",
-                    `7` = "Private Trips"
-                    )
+  `7` = "Private Trips",                  
+  `5` = "Charter Trips",
+  `3` = "Shore Trips"
+                  )
 
 tripsTMPS %>%
   filter(Year == 2019) %>%
@@ -378,41 +313,32 @@ tripsTMPS %>%
   facet_wrap(vars(Mode), scales = "free", nrow = 3, labeller = as_labeller(mode_names))
 ```
 
-Figure \@ref(fig:trips-seasonality-plot) shows the same curves as 
-in Figure \@ref(fig:private-boat-trips-seasonality-plot), but rescaled to show
-monthly values as a fraction of the annual total. This shows that fishing activity
-is in most states fairly broadly distributed from April through November, with 
+Figure \@ref(fig:trips-seasonality-plot) displays seasonal trends
+in the level of trips across the 16 states in the dataset, for each mode of fishing. Each grey line plots
+the seasonal pattern for one state, with the monthly values for each state displayed as a fraction of the annual total. The black line provides a simple average of these relative values across
+the 16 states within each month, so that the black line represents the composite
+national-level seasonality trend in fishing trips among these 16 states. July is
+both the modal peak month among the states, and the peak month for the national 
+trend, for all 3 modes of fishing. There are many state-months in which 0 trips are recorded, and in 
+particular for the private mode there are only 4 states with positive trips in January: Florida, North Carolina, Alabama, and
+Mississippi. 
+
+We can see from Figure \@ref(fig:trips-seasonality-plot) that fishing activity for the private
+mode is in most states fairly broadly distributed from April through November, with 
 only 10 state-months accounting for more than 20% of the 
 annual trips in a state, and a maximum of 35% for Maine in June. All but 1 of the 10
 state-months with more than 20% of annual trips come from the Northern states of
 Maine, New Hampshire, Massachusetts, Delaware and Rhode Island, with July in 
-Mississippi as the exception.
-
-```{r COVID-stringency-phillips-curve-FL,fig.cap="COVID Stringency vs relative fishing trips over time for Florida, private mode. Each label on the figure plots values for a single month, with sequential months connected by the path. The y-axis values are the trips for the month in 2020, divided by the average trips in that month from 2017 through 2019.",fig.height=6,fig.width=5,fig.align='center'}
-tripsTMPS %>% 
-  filter(Mode == 7) %>% 
-  group_by(State, Month) %>% 
-  arrange(Year, .by_group = TRUE) %>% 
-  mutate(trip_ratio = case_when(Year == 2020 ~ Trips / mean(Trips[1:3]))) %>% 
-  ungroup() %>% 
-  arrange(Month) %>% 
-  filter(State == "Florida", Year==2020) %>% 
-  ggplot(aes(x = Stringency, y = trip_ratio, label = Month)) +
-  ylab("Trip Ratio (2020:2017-19)") +
-  geom_path() +
-  geom_label()
-```
-
-Figure \@ref(fig:COVID-stringency-phillips-curve-FL) shows the comovement of
-COVID Stringency and relative fishing activity for the state of Florida over the course of
-2020. With the notable exception of February to March, most of the month-to-month
-changes exhibit a downward slope. Note that Florida was chosen for this exhibit because it is the
-only state with sufficient fishing activity throughout the entire year to create
-these ratios for all 12 months of the year.
+Mississippi as the exception. While the pattern for the shore mode is quite similar
+to private mode, we can see that the charter mode has substantially more concentration
+in the Summer, reflecting the fact that those fishing with their own equipment are
+more likely to get use out of that equipment throughout the year, and vice versa.
 
 ```{r pString,fig.cap="Monthly 2020 stringency Index by State",fig.height=6,fig.width=5,fig.align='center'}
-covid_colors <- c("NY" = "red", "FL" = "blue", "AL" = "darkgreen", "other" = "grey")
+covid_colors <- c("NY" = "black", "FL" = "black", "AL" = "black", "other" = "grey")
 covid_alpha <- c("NY" = 1, "FL" = 1, "AL" = 1, "other" = 0.5)
+covid_linetype <- c("NY" = "dashed", "FL" = "dotted", "AL" = "dotdash", "other" = "solid")
+
 tripsTMPS %>% 
   mutate(covid_cat = case_when(State == "New York" ~ "NY",
                                State == "Florida" ~ "FL",
@@ -420,11 +346,12 @@ tripsTMPS %>%
                                TRUE ~ "other")) %>% 
   filter(Year > 2019) %>%
   mutate(Date = lubridate::make_date(Year, Month)) %>% 
-  ggplot(aes(x=Date,y=Stringency, group=State, color=covid_cat, alpha=covid_cat)) +
+  ggplot(aes(x=Date,y=Stringency, group=State, color=covid_cat, alpha=covid_cat, linetype=covid_cat)) +
   geom_line() + 
   ylab("stringency") + 
-  scale_color_manual(values = covid_colors, name = "States") +
-  scale_alpha_manual(values = covid_alpha, guide = "none")
+  scale_color_manual(values = covid_colors, guide = "none") +
+  scale_alpha_manual(values = covid_alpha, guide = "none") + 
+  scale_linetype_manual(values = covid_linetype)
 ```
 
 Figure \@ref(fig:pString) shows the evolution of COVID policy stringency over the
@@ -441,7 +368,7 @@ stringency and fishing activity.
 
 ## Modeling Approach
 
-We model the relationship between the aggregate monthly number of salwater fishing trips trips taken in each state and the monthly COVID policy stringency using a Poisson regression model with the following conditional mean:
+We model the relationship between the aggregate monthly number of salwater fishing trips trips taken in each state and the monthly COVID policy stringency using a fixed effect Poisson regression model with the following conditional mean:
 
 $$\mu_{imy} = W_{iy}*\exp(\beta_1 S_{imy} + \beta_2 S_{imy}^2 + \alpha_{im} + \gamma_i y)$$
 
@@ -449,13 +376,26 @@ where for state $i$ during month $m$ and year $y$, $\mu_{imy}$ is the expected a
 which allow for state-specific seasonality trends in our model, and $\gamma_i$ is
 a state-specific linear time trend.
 
-We estimate this model as a generalized linear model, using the `fixest` package 
-in `R` @berge2018Efficient. Regarding variance estimation, we make several deviations from the standard
-glm estimation and inference in order to account for the nature of our data. First, we calculate
+Given the above specification for the conditional mean function, there are multiple
+regression models which may be chosen, including a basic generalized linear model,
+as well as poisson and negative binomial models that specifically model the count
+nature of the dependent variable and guarantee that the fitted model produces 
+non-negative predictions. We choose a Poisson regression model, following the advice
+of @wooldridge2010econometric who notes that estimating a Poisson model is the most
+efficient method which is consistent when only the conditional mean needs to be correctly specified,
+while the negative binomial models are inconsistent unless both the conditional
+mean and variance assumptions for that model are correct. The conventional drawback to Poisson
+estimation is the restrictive assumption that the conditional mean and variance
+are equal, which is addressed partly by the used of fixed effects which absorb
+much of the variation, bringing the conditional variance closer to the conditional 
+mean, and furthermore by the use of cluster-robust variance estimation, detailed below.
+
+We estimate this Poisson regression model using the `fixest` package 
+in `R` @berge2018Efficient. We calculate
 variance estimates clustered at the state level, so as to account for unmodeled
 correlation between the number of trips taken in different periods within a state,
 as may be the case for instance if unfavorable weather in a given month causes some
-trips to be postponed to the following month. Second, our clustered variance estimates
+trips to be postponed to the following month. Furthermore, our clustered variance estimates
 are adjusted for the fact that the number of clusters is small (16), and therefore
 typical asymptotically-consistent variance estimators may have a downward bias.
 Specifically, our variance estimates are calculated using a bias-reduced linearization
@@ -470,15 +410,15 @@ by @pustejovsky2016Small.
 
 # Results
 
-Table \@ref(regResults) and Figure \@ref(fig:tripStringRel) present the results of
-our estimated Poisson regression model. A common trend is seen between
-each of the 3 fitted models for the different fishing modes: There is an 
-inverse-U relationship between COVID policy stringency and fishing trips, ie.
-the first order relationship is an increase in fishing trips at moderate levels 
-of policy stringency, with a second order effect dampening or even reversing
-this relationship at higher levels of stringency. These relationships are seen
-in the model coefficients presented in Table \@ref(regResults), which are significant
-at the 1% level for private mode trips, and at the 5% level for shore mode, but not for charter. 
+Table \@ref(regResults) presents the results of
+our estimated Poisson regression models, with the state-specific time trends and 
+seasonality patterns suppressed to focus on the coefficients of interest. A common trend is seen between
+each of the 3 fitted models for the different fishing modes: the first order relationship is an increase in fishing trips at moderate levels of policy stringency, with a second order effect dampening or even reversing
+this relationship at higher levels of stringency. The first order relationshipss are significant
+at the 1% level for private mode trips, and at the 5% level for shore mode, while 
+the coefficients for the charter mode are significant only at the 10% level. The second order
+coefficient is significant only for the private mode, though it has a negative sign
+in all 3 independent models based on separate datasets.
 
 Figure \@ref(fig:tripStringRel)
 represents these same relationships graphically, by plotting the estimated
@@ -487,16 +427,7 @@ various possible levels of COVID strignency. The solid line
 provides the point estimates for predicted percentage change in trips, while the shaded areas plot
 the 95% confidence intervals around these predictions. 
 
-Our results represent a composite effect of the actual local COVID policies, as
-well as localized attitudes, risk tolerances, and beliefs about COVID-19 which
-are correlated with COVID stringency. In particular, we see the inverse-U
-relationship we find to be the outcome of countervailing forces: (1) stringency reduces available substitutes of indoor
-or high-density outdoor activities, increasing the attractiveness of fishing,
-which is the dominant force on the low-stringency side of the curve, and (2)
-COVID risk makes even a relatively distanced activity, such as fishing, less
-appealing compared to entirely in-home activities such as cooking, backyard
-games, video games, etc., which in addition to site closures is the dominating force on the high-stringency
-side of the curve.
+
 
 
 
@@ -621,7 +552,7 @@ texreg(list(pm$reg,cm$reg,sm$reg),custom.model.names = c("Private","Charter","Sh
 ```
 
 
-```{r tripStringRel,fig.cap="Predicted Trips as a Function of the Stringency Index",fig.height=8,fig.width=4}
+```{r tripStringRel,fig.cap="Predicted Percentage Change in Trips as a Function of the Stringency Index",fig.height=8,fig.width=4}
 
 #Predicted trips as a function of stringency, including confidence intervals
 pas=ggarrange(pm$pplots,cm$pplots,sm$pplots,ncol = 1, nrow = 3)
@@ -632,46 +563,44 @@ pas
 
 ## Conclusion
 
-Overall, our moderate results for the relationship between COVID policy stringency and total angler-trips taken suggest that marine fishing activity was actually relatively stable throughout 2020, in comparison with other socioeconomic indicators like unemployment, GDP, etc. which saw 3- or 4-sigma changes, sometimes the largest month-to-month changes since these statistics have been recorded.
-This is to some degree consistent with another study @midway2021covid, which conducted a nation-wide survey using the license frames from multiple states of both freshwater and saltwater anglers, and found that among the survey respondents, the modal response to the question "How has CVOID most impacted your life" was "No effect", followed by "stress" (Figure 2, panel b in the paper). This suggests that anglers are perhaps less affected by COVID than the general population, which is known to have experienced record-high levels of stress and anxiety during the COVID pandemic, according to research including a nationally-representative survey on mental health published in Science @holman2020unfolding.
-How to interpret this is an open question. It is commonly reported that angling is a relaxing activity, which many people do for solace from the world ("the contemplative man’s recreation"), and so perhaps it is the case that the kind of person who goes fishing is simply less affected by the pandemic. It may also reflect other correlations, such as occupational composition, if it is the case that anglers tend to have jobs which were less affected by the pandemic, or political correlations, if anglers happen to be more conservative / less inclined to believe that the pandemic was a cause to change their behavior. 
+In this paper, we measure the net effect of COVID policy stringency on recreational marine fishing effort, among 16 states in the eastern U.S. To do so, we rely on data from the MRIP program to measure the total number
+of angler-trips in each state-month, and on the OxCGRT dataset to measure the average
+level of COVID policy stringency in each state month. We estimate a fixed effect 
+Poisson model to estimate this non-monotonic relationship, allowing for state-specific
+seasonality trends and time trends in the level of fishing trips, 
+
+Our results represent a composite effect of the actual local COVID policies, as
+well as localized attitudes, risk tolerances, and beliefs about COVID-19 which
+are correlated with COVID stringency. In particular, we see the inverse-U
+relationship we find to be the outcome of countervailing forces: (1) stringency reduces available substitutes of indoor
+or high-density outdoor activities, increasing the attractiveness of fishing,
+which is the dominant force on the low-stringency side of the curve, and (2)
+COVID risk makes even a relatively distanced activity, such as fishing, less
+appealing compared to entirely in-home activities such as cooking, backyard
+games, video games, etc., which in addition to site closures is the dominating force on the high-stringency
+side of the curve.
+
+Overall, our moderate results for the relationship between COVID policy stringency and total angler-trips taken, which show an approximately 20% increase in private boat trips taken at the levels of COVID stringency which predominated in most states by late 2020 into 2021, suggest that marine fishing activity was actually relatively stable throughout 2020, at least in comparison with socioeconomic indicators like unemployment, GDP, etc. which saw 3- or 4-sigma changes, sometimes the largest month-to-month changes since these statistics have been recorded.
 
 In regards to policy implications, our results may be interpreted in a few ways.
-If internal migration has increased, perhaps certain states in the Southeast need to take account of increased fishing pressure, while other states can ease off of their attempts to constrain effort. If increases in congestion have effectively increased the cost of trips, then perhaps angler welfare per trip is reduced, which on a naive interpretation would mean that their allocation of quota should be reduced, although the other way to look at that is that it points to an increased need for flexibility in disposition of catch privileges. In other words, if boat ramp congestion due to increased boating activity (non-fishing related) is negatively affecting anglers and eating into the value of trip, anglers may be better off being able to choose their own seasons to adapt to their local conditions, which they will be able to do better than a central planner. 
+For instance, to the extent that our results reflect the increased internal migration within the US, perhaps certain states in the Southeast will need to take account of persistent increased fishing pressure, while other states that have lost population will not. Or, to the extent that the results are driven by new participants in fishing, it will have to be seen whether these
+new participants continue to use the fishery before we know if there will be long-run ramifications for management.
+Relatedly, if increases in congestion (eg. boat ramps being busier, not only due to increased fishing activity but also increased boating in general) have effectively increased the cost of fishing trips, then angler welfare per trip may be reduced, which would have implications for the management of the fishery. Future research may seek to better understand 
+the determinants of the change in effort, as well as the implications of these
+changes for angler welfare and net benefits from the fishery.
 
 
 # References {#references .unnumbered}
 
 <div id="refs"></div>
 
+
+<!--
 # Extra stuff
 
 ## Misc. Summary Stats
 
-```{r sumSat,results='asis',eval=FALSE}
 
-# ssbym=as.data.frame(t(aggregate(cbind(Trips,Hrsf,Party,Stringency)~Mode,data=tripsTMPS,
-#           FUN=function(x) cbind(mean(x), median(x), sd(x)))))
-# 
-# names(ssbym)=c("Shore","Charter","Private")
-# rownames(ssbym)=c("Mode",rep(c("Mean","Median","St. Dev."),4))
-# 
-# kbl(ssbym[-1,],row.names = rep(c("Mean","Median","St. Dev."),4)) %>%
-#   kable_classic() %>%
-#   pack_rows("Trips", 1, 3) %>%
-#   pack_rows("Hours Fished", 4, 6)  %>%
-#   pack_rows("Party Size", 7, 9)  %>%
-#   pack_rows("Stringency", 10, 12)
-
-library(vtable)
-st(tripsTMPS %>% 
-     mutate(Mode = recode(Mode, `3` = "Shore", `5` = "Charter", `7` = "Private")) %>% 
-     select("Trips","Hrsf","Party","Stringency", "Mode"),
-   group = 'Mode', group.test = FALSE,group.long = TRUE,
-   title="Summary Statistics for Key Variables, by Mode",
-   out="latex")
-
-```
 
 ## Time Series decomposition
 
@@ -744,7 +673,7 @@ pa=ggarrange(pm$pplot,cm$pplot,sm$pplot,ncol = 1, nrow = 3)
 annotate_figure(pa,fig.lab = "Note: Based on Trips in Florida During June of 2019",fig.lab.pos = "bottom.left")
 
 ```
-
+-->
 
 
 
