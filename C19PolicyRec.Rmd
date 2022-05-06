@@ -19,21 +19,17 @@ address:
 header-includes:
    - \usepackage{threeparttable}
 abstract: |
-  Governments responded to the Covid-19 pandemic with different policies to curtail the spread of the virus. We show how sportfishing levels are related to the stringency of Covid-19 policies. Specifically, we measure the total
-  number of resident sportfishing trips taken each month in each of 16 U.S. states covered by the 
-  Marine Recreational Information Program, and relate this to a state-level index
-  of COVID policy stringency developed by the Oxford COVID Government Response Tracker
-  program. We model the number of recreational fishing trips taken in each state-month
-  as non-linear function of the stringency index, using a fixed effect Poisson
+  Governments responded to the Covid-19 pandemic with different policies to curtail the spread of the virus. We show how sportfishing levels are related to the stringency of Covid-19 policies. Specifically, we relate the total
+  number of resident sportfishing trips taken each month in each of 16 U.S. states to a state-level index
+  of COVID policy stringency. We model the number of recreational fishing trips taken in each state-month using a fixed effect Poisson
   regression model with state-specific seasonality and time trends. We
-  estimate separate models for different fishing modes, and for fishing trips
-  taken on private boats find that at moderate levels of stringency the number
-  of trips may have increased by approximately 20%, while at high levels of stringency
+  estimate separate models for different fishing modes, and find that for fishing trips
+  taken on private boats the number
+  of trips may have increased by approximately 20% at moderate levels of stringency, while at high levels of stringency
   like those experienced in many states in March and April of 2020, trips may have stayed
   constant or declined by 10-20%. Similar inverse-U shaped relationships between
   trips and stringency are found for fishing trips from the shore and from charter 
-  boats, though with larger point estimates of the impacts but greater uncertainty
-  associated with those estimates.
+  boats.
   
 bibliography: C19PolicyRec.bib
 output:
@@ -45,7 +41,6 @@ editor_options:
   chunk_output_type: console
 ---
 
-_Text based on plos sample manuscript, see <https://journals.plos.org/ploscompbiol/s/latex>_
 
 ```{r setup0,echo=FALSE}
 
@@ -254,9 +249,9 @@ Below, we describe in greater detail these two major data sources, as well as st
 
 ### MRIP
 
-The MRIP program oversees survey research to monitor the level of marine angling activity in a consistent fashion throughout US fisheries (we discuss the structure of these surveys in greater detail below). The primary unit of measurement for our aggregated summary of the MRIP dataset is the angler-trip (hereafter abbreviated simply to trip), representing the total number of distinct trips multiplied by the average party size of those trips.
+The MRIP program oversees survey research to monitor the level of marine angling activity in a consistent fashion throughout US fisheries (we discuss the structure of these surveys in greater detail below). The specific data product we use from MRIP is the Fishing Effort Survey (FES), a mail survey which asks anglers to recall how many trips they have been on recently, in order to get information on the total level of fishing activity. The primary unit of measurement for our aggregated summary of the FES dataset is the angler-trip (hereafter abbreviated simply to trip), representing the total number of distinct trips multiplied by the average party size of those trips.
 
-We use the MRIP data for the 16 states along the Gulf and Atlantic coasts in which it is available.^[Specifically, the states are: AL, CT, DE, FL, GA, ME, MD, MA, MS, NH, NJ, NY, NC, RI, SC and VA] The MRIP program publishes estimates of fishing activity for 2-month periods referred to as waves, but rather than use these estimates we use the publicly-available microdata files^[The MRIP data files are maintained by NOAA fisheries at the following URL:
+We use the FES data for the 16 states along the Gulf and Atlantic coasts in which it is available.^[Specifically, the states are: AL, CT, DE, FL, GA, ME, MD, MA, MS, NH, NJ, NY, NC, RI, SC and VA] The MRIP program publishes estimates of fishing activity for 2-month periods referred to as waves, but rather than use these estimates we use the publicly-available microdata files^[The MRIP data files are maintained by NOAA fisheries at the following URL:
 https://www.fisheries.noaa.gov/recreational-fishing-data/recreational-fishing-data-downloads] to estimate total trips in each state-month. Creating our own estimates also allows us to customize the estimates, and we choose to specifically create
 estimates of the number of trips taken by in-state residents.
 
@@ -268,17 +263,10 @@ which no data is collected for the private boat and shore modes, so data for the
 modes includes only 785 observations, and 45 state-months
 have no data collection for the charter mode, leading to 735 observations. 
 
-The MRIP program currently consists of 2 primary data collection efforts, the Fishing Effort Survey (FES), and the Access Point Angler Intercept Survey (APAIS). The FES is a mail survey which asks anglers to recall how many trips they have been on recently, in order to get information on the total level of fishing activity. The APAIS is an in-person survey conducted at common fishing
-locations by field workers, and asks for information about the fishing trip they are on when surveyed, as well as sampling some of the fish they catch in order to get valid length information for the caught fish, as well as species composition data. During 2020 the FES was able to continue unhindered, while the APAIS was suspended for at least some
-length of time nationwide in March and April 2020, with data collection resuming unevenly throughout the country in May and June (wave 3) according to local conditions^[see Figure 6 of the [MRIP survey design manual](https://media.fisheries.noaa.gov/2021-09/MRIP-Survey-Design-and-Statistical-Methods-2021-09-15.pdf) for more information on which states resumed data collection at which times.].
-We are able to construct the total trip estimates for all state-months in 2020 in the same fashion as in 2019 and earlier years, since the FES was able to continue unhindered. However, other outcome variables which might have been investigated,
-such as the average party size on a fishing trip, are affected by the APAIS suspension and can not be estimated for many
-state-months in early 2020, which is when the largest changes in COVID-19 policy stringency occur, and therefore we can not examine the relationship between policy stringency and these outcomes due to intractable missing data problems.
-
 
 ### COVID Stringency Index
 
-Our key independent variable, on state-month level COVID stringency, comes from the Oxford COVID Government Response Tracker project. This data, as described by @hale2021global, is a global dataset tracking government response to COVID across 19 distinct policy indicators such as school- and work-closures, stay-at-home-orders, and movement restrictions. These data are tracked at the daily level, and for the US they are available by state. The data have been continuously updated since February 2020 by a team of volunteers who parse government reports, news, and other sources of info to create a standardized set of indicators which are comparable across the globe and across time. The full dataset includes indicators for economic response and health policy, as well as the closure indicators mentioned previously. The data product we use is the Stringency Index, which combines all 8 closure indicators, as well as a variable indicating the presence of public information campaigns, such as the "flatten the curve" campaign which was common throughout the US circa March and April 2020. All indicators in this index are recorded on discrete, ordinal scales with either 3, 4 or 5 ordinal levels. 
+Our key independent variable, on state-month level COVID stringency, comes from the Oxford COVID Government Response Tracker project. This data, as described by @hale2021global, is a global dataset tracking government response to COVID across 19 distinct policy indicators such as school- and work-closures, stay-at-home-orders, and movement restrictions. These data are tracked at the daily level, and for the US are available by state. The data have been continuously updated since February 2020 by a team of volunteers who parse government reports, news, and other sources of info to create a standardized set of indicators which are comparable across the globe and across time. The full dataset includes indicators for economic response and health policy, as well as the closure indicators mentioned previously. The data product we use is the Stringency Index, which combines all 8 closure indicators, as well as a variable indicating the presence of public information campaigns, such as the "flatten the curve" campaign which was common throughout the US circa March and April 2020. All indicators in this index are recorded on discrete, ordinal scales with either 3, 4 or 5 ordinal levels. 
 
 @hallas2021Variation present additional information pertinent to the US state-level data, as well as the stylized facts in the data, such as the multiple cycles of stringency at first tightening, followed by loosening policy until a new COVID wave and increased community transmission results in a re-tightening of COVID stringency. Additionally, over time the political gap in Stringency widened with democratic-led states having progressively tighter COVID policy compared to conservative states. 
 
@@ -355,7 +343,7 @@ tripsTMPS %>%
 ```
 
 Figure \@ref(fig:pString) shows the evolution of COVID policy stringency over the
-course of 2020 for each of the 16 states in our analysis. Following the initial 
+course of 2020 and 2021 for each of the 16 states in our analysis. Following the initial 
 uniform jumps in stringency during the March/April 2020 lockdowns, there is 
 substantial variation between the states in how COVID policy evolved. Here we have
 highlighted 3 states showing arch-typical cases: (1) New York, which had 
@@ -371,27 +359,13 @@ stringency and fishing activity.
 We model the relationship between the aggregate monthly number of salwater fishing trips trips taken in each state and the monthly COVID policy stringency using a fixed effect Poisson regression model with the following conditional mean:
 
 $$\mu_{imy} = W_{iy}*\exp(\beta_1 S_{imy} + \beta_2 S_{imy}^2 + \alpha_{im} + \gamma_i y)$$
-
 where for state $i$ during month $m$ and year $y$, $\mu_{imy}$ is the expected aggregate trips, $W_{iy}$ is the state population, and $S_{imy}$ is the daily average COVID policy stringency. The coefficients $\beta_1$ and $\beta_2$ capture the aggregate relationship between stringency and trips taken, while the term $\alpha_{im}$ represents state-month fixed effects
 which allow for state-specific seasonality trends in our model, and $\gamma_i$ is
-a state-specific linear time trend.
-
-Given the above specification for the conditional mean function, there are multiple
-regression models which may be chosen, including a basic generalized linear model,
-as well as poisson and negative binomial models that specifically model the count
-nature of the dependent variable and guarantee that the fitted model produces 
-non-negative predictions. We choose a Poisson regression model, following the advice
-of @wooldridge2010econometric who notes that estimating a Poisson model is the most
+a state-specific linear time trend. We choose a Poisson regression model to estimate this conditional mean function, following the advice of @wooldridge2010econometric who notes that estimating a Poisson model is the most
 efficient method which is consistent when only the conditional mean needs to be correctly specified,
-while the negative binomial models are inconsistent unless both the conditional
-mean and variance assumptions for that model are correct. The conventional drawback to Poisson
-estimation is the restrictive assumption that the conditional mean and variance
-are equal, which is addressed partly by the used of fixed effects which absorb
-much of the variation, bringing the conditional variance closer to the conditional 
-mean, and furthermore by the use of cluster-robust variance estimation, detailed below.
+without needing to also correctly specify the conditional variance.
 
-We estimate this Poisson regression model using the `fixest` package 
-in `R` @berge2018Efficient. We calculate
+ We calculate
 variance estimates clustered at the state level, so as to account for unmodeled
 correlation between the number of trips taken in different periods within a state,
 as may be the case for instance if unfavorable weather in a given month causes some
@@ -399,7 +373,8 @@ trips to be postponed to the following month. Furthermore, our clustered varianc
 are adjusted for the fact that the number of clusters is small (16), and therefore
 typical asymptotically-consistent variance estimators may have a downward bias.
 Specifically, our variance estimates are calculated using a bias-reduced linearization
-method proposed by @bell2002bias, as implemented in the `clubSandwich` package in `R`
+method proposed by @bell2002bias. We estimate the Poisson regression model using the `fixest` package 
+in `R` @berge2018Efficient, and variance estimation is conducted through the `clubSandwich` package in `R`
 by @pustejovsky2016Small.
 
 
@@ -411,14 +386,14 @@ by @pustejovsky2016Small.
 # Results
 
 Table \@ref(regResults) presents the results of
-our estimated Poisson regression models, with the state-specific time trends and 
-seasonality patterns suppressed to focus on the coefficients of interest. A common trend is seen between
-each of the 3 fitted models for the different fishing modes: the first order relationship is an increase in fishing trips at moderate levels of policy stringency, with a second order effect dampening or even reversing
+our estimated fixed effects Poisson regression models, with the state-specific time trends and 
+seasonality fixed effects suppressed to focus on the coefficients of interest. In
+each of the 3 fitted models for the different fishing modes, the first order relationship is an increase in fishing trips at moderate levels of policy stringency, with a second order effect dampening or even reversing
 this relationship at higher levels of stringency. The first order relationshipss are significant
 at the 1% level for private mode trips, and at the 5% level for shore mode, while 
 the coefficients for the charter mode are significant only at the 10% level. The second order
 coefficient is significant only for the private mode, though it has a negative sign
-in all 3 independent models based on separate datasets.
+in all 3 independent models.
 
 Figure \@ref(fig:tripStringRel)
 represents these same relationships graphically, by plotting the estimated
@@ -563,16 +538,16 @@ pas
 
 ## Conclusion
 
-In this paper, we measure the net effect of COVID policy stringency on recreational marine fishing effort, among 16 states in the eastern U.S. To do so, we rely on data from the MRIP program to measure the total number
+In this paper, we measure the net effect of COVID policy stringency on recreational marine fishing effort, among 16 states in the eastern U.S. To do so, we rely on data from the FES to measure the total number
 of angler-trips in each state-month, and on the OxCGRT dataset to measure the average
-level of COVID policy stringency in each state month. We estimate a fixed effect 
+level of COVID policy stringency in each state-month. We estimate a fixed effect 
 Poisson model to estimate this non-monotonic relationship, allowing for state-specific
-seasonality trends and time trends in the level of fishing trips, 
+seasonality trends and time trends in the level of fishing trips.
 
 Our results represent a composite effect of the actual local COVID policies, as
 well as localized attitudes, risk tolerances, and beliefs about COVID-19 which
 are correlated with COVID stringency. In particular, we see the inverse-U
-relationship we find to be the outcome of countervailing forces: (1) stringency reduces available substitutes of indoor
+relationship as the outcome of countervailing forces: (1) stringency reduces available substitutes of indoor
 or high-density outdoor activities, increasing the attractiveness of fishing,
 which is the dominant force on the low-stringency side of the curve, and (2)
 COVID risk makes even a relatively distanced activity, such as fishing, less
@@ -674,6 +649,5 @@ annotate_figure(pa,fig.lab = "Note: Based on Trips in Florida During June of 201
 
 ```
 -->
-
 
 
