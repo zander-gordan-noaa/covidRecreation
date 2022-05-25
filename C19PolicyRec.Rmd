@@ -644,7 +644,51 @@ list(d4nma3, d4nma5, d4nma) %>%
                   caption = "PSE Quantiles by mode")
 ```
 
+The dataset used in the main panel does not represent a full, balanced panel of
+the 16 states with a monthly time step from January 2017 through December 2021. This
+is because, due to the reasons explained above, some state-months (such as January
+in Maine) are removed from the dataset for all years because there is no data for
+these months. The key question is to what extent it is therefore appropriate to
+treat the estimated number of trips as being 0. In the main text of the paper, if
+a state-month has no data in every year, the state-month is removed from the dataset.
+This results in a total of 35 state-months being removed for the Shore and Private
+mode datasets, and 45 state-months being removed for the Charter dataset. Subtracting
+these amounts from the total 192 state-months and multiplying by 5 years gives the
+total number of observations for our estimation samples in the main paper, 785 and
+735 respectively for Private/Shore and Charter.
 
+However, if a state-month has data in some but not all years, it is kept in the dataset
+and for the years without data a value of 0 trips is assigned as the estimated
+number of trips. This happens for instance with Connecticut in the month of March
+for its Charter mode data, which has completed intercept survey data in 2018, but
+not in any other year. Thus, in the dataset used in the main paper, Connecticut has
+an estimated 68 trips for March 2018 in the charter mode dataset, and 0 for March
+of all other years. 
+
+In this appendix, we define an alternative dataset with a more
+restrictive criterion for inclusion of these problematic state-months with limited
+data. In the restricted estimation sample, if a state-month is missing data for
+any year, it is removed from the estimation sample. Note that this means that all
+observations with missing data are removed from the estimation sample, and no
+imputation is done in this sample. This results in only a slightly higher
+number of state-months being removed for the Private and Shore modes, with a final
+estimation sample size of 765 for Private and 770 for Shore. For Charter mode, the
+restriction is more severe, and the restricted estimation sample contains only
+600 observations.
+
+As an additional check on the validity of the estimated number of trips which
+forms the dependent variable for the study, Table \@ref(tab:PSEtable) shows the 
+distribution of the Percent Standard Errors of the estimated number of trips
+in each of the 3 restricted estimation samples, by showing the deciles of the 
+distributions. We can see that for Shore and Private modes, the vast majority of 
+observations have PSE's less than 50%, while for Charter mode there are a large
+minority of such problematic observations. The noise in the charter mode observations
+may thus explain why statistically significant results are not obtained in either
+the main paper results or the supplementary regression results presented in this
+appendix. It is important to remember however, that the regression coefficient
+variances are estimated using a cluster-robust estimation method which adjusts
+for the heteroskedasticity induced by this sampling variance in the dependent
+variable.
 
 
 ```{r loadDataAppendix, warning=FALSE, echo=FALSE}
@@ -786,6 +830,11 @@ saveRDS(cm_app,"cm_app.rds")
 saveRDS(sm_app,"sm_app.rds")
 
 ```
+
+Table \@ref(regResultsApp) and Figure \@ref(fig:tripStringRelApp) present the
+results of the Poisson fexed effects regression model estimated on the restricted
+estimation sample. The results are largely identical to those reported in the main
+paper.
 
 ```{r regTblApp, fig.pos="h", warning=FALSE, results='asis'}
 
