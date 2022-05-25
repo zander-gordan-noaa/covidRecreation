@@ -240,12 +240,84 @@ the function for doing the regressions models to specifically handle the shore m
 as well. And I can make sure that each mode's regression model has separate datasets.
 
 
+---
+
+Update a few hours later:
+
+I have completed the regression modeling using the new, more restrictive sample.
+However, I also need to create the tables showing the extent of high PSE's,
+for both the main estimation sample, and the new more restrictive one.
+
+I should also pay particular attention to making sure that the "0" PSE's are
+actually handled as missing PSE's, due to only a single observation being available
+in the intercept data. Or perhaps I treat it as essentially an "infinite" PSE, and
+just include it in the percentage of PSE's above a given threshold.
+
+But first I want to deal with the "0" PSE's:
+
+```{r}
+trips_joined_for_table <- trips_joined %>% 
+  mutate(pse = case_when(pse == 0 ~ 100,
+                         TRUE ~ pse))
+```
 
 
+```{r}
+some_no_data_sms<- tripsTMPS %>% 
+  filter(Mode == "7") %>% 
+  group_by(State, Month) %>% 
+  summarise(min_Trips = min(Trips), .groups = "drop") %>% 
+  filter(min_Trips == 0) %>% 
+  select(State, Month)
 
+data_for_new_model_app <- trips_joined_for_table %>% 
+  anti_join(some_no_data_sms, by = c("State", "Month")) %>% 
+  filter(Mode == 7)
 
+some_no_data_sms5<- tripsTMPS %>%
+  filter(Mode == "5") %>%
+  group_by(State, Month) %>%
+  summarise(min_Trips = min(Trips), .groups = "drop") %>%
+  filter(min_Trips == 0) %>%
+  select(State, Month)
 
+data_for_new_model5_app <- trips_joined_for_table %>%
+  anti_join(some_no_data_sms5, by = c("State", "Month")) %>% 
+  filter(Mode == 5)
 
+some_no_data_sms3<- tripsTMPS %>%
+  filter(Mode == "3") %>%
+  group_by(State, Month) %>%
+  summarise(min_Trips = min(Trips), .groups = "drop") %>%
+  filter(min_Trips == 0) %>%
+  select(State, Month)
+
+data_for_new_model3_app <- trips_joined_for_table %>%
+  anti_join(some_no_data_sms3, by = c("State", "Month")) %>%
+  filter(Mode == 3)
+```
+
+I can now assess the extent of high PSE's in the data:
+
+```{r}
+data_for_new_model_app %>% 
+  summarise(Quantile = scales::percent(seq(0, 1, 0.1)),
+            PSE = quantile(pse, seq(0, 1, 0.1)))
+```
+
+So for the restricted dataset, we still had some "0" PSE's, and we still have some 
+100 PSE's, but we avoid the issue of not being able to estimate the mean because
+there are no observations.
+
+Let me create a single table that shows these PSE percentiles for all 3 datasets:
+
+```{r message=FALSE, warning=FALSE}
+list(data_for_new_model3_app, data_for_new_model5_app, data_for_new_model_app) %>% 
+  map_dfc(function(x) x %>% summarize(PSE = quantile(pse, seq(0.1, 1, 0.1)))) %>% 
+  rename(Shore = PSE...1, Charter = PSE...2, Private = PSE...3) %>% 
+  mutate(Quantile = scales::percent(seq(0.1, 1, 0.1))) %>% 
+  relocate(Quantile, .before = Shore)
+```
 
 
 

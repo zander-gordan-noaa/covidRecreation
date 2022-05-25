@@ -590,6 +590,61 @@ by residents in the state-month. We first characterize the extent of this uncert
 and then repeat our main regression modeling with restricted estimation samples
 that exclude state-months with the most uncertainty in the estimated number of trips.
 
+```{r PSEtable}
+# load data with PSE's
+tripsTs <- readRDS("tripsTs.rds")
+# join to original dataset
+tripsTs_forjoin <- tripsTs %>% 
+  mutate(YEAR = as.character(YEAR) %>% as.numeric(),
+         MODE_FX = as.character(MODE_FX),
+         ST = as.character(ST) %>% as.numeric(),
+         month = as.character(month))
+trips_joined <- tripsTMPS %>% 
+  left_join(tripsTs_forjoin, by = c("FIPS" = "ST", "Year" = "YEAR", 
+                                    "Mode" = "MODE_FX", "Month" = "month"))
+# edit "0" PSE's for tabulation
+trips_joined_for_table <- trips_joined %>% 
+  mutate(pse = case_when(pse == 0 ~ 100,
+                         TRUE ~ pse))
+# create datasets that will be used for estimation
+snds<- tripsTMPS %>% 
+  filter(Mode == "7") %>% 
+  group_by(State, Month) %>% 
+  summarise(min_Trips = min(Trips), .groups = "drop") %>% 
+  filter(min_Trips == 0) %>% 
+  select(State, Month)
+d4nma <- trips_joined_for_table %>% 
+  anti_join(snds, by = c("State", "Month")) %>% 
+  filter(Mode == 7)
+snds5<- tripsTMPS %>%
+  filter(Mode == "5") %>%
+  group_by(State, Month) %>%
+  summarise(min_Trips = min(Trips), .groups = "drop") %>%
+  filter(min_Trips == 0) %>%
+  select(State, Month)
+d4nma5 <- trips_joined_for_table %>%
+  anti_join(snds5, by = c("State", "Month")) %>% 
+  filter(Mode == 5)
+snds3<- tripsTMPS %>%
+  filter(Mode == "3") %>%
+  group_by(State, Month) %>%
+  summarise(min_Trips = min(Trips), .groups = "drop") %>%
+  filter(min_Trips == 0) %>%
+  select(State, Month)
+d4nma3 <- trips_joined_for_table %>%
+  anti_join(snds3, by = c("State", "Month")) %>%
+  filter(Mode == 3)
+# create table with PSE quantiles by dataset
+list(d4nma3, d4nma5, d4nma) %>% 
+  map_dfc(function(x) x %>% summarize(PSE = quantile(pse, seq(0.1, 1, 0.1)))) %>% 
+  rename(Shore = PSE...1, Charter = PSE...2, Private = PSE...3) %>% 
+  mutate(Quantile = scales::percent(seq(0.1, 1, 0.1))) %>% 
+  relocate(Quantile, .before = Shore) %>% 
+  kableExtra::kbl(booktabs = T,
+                  caption = "PSE Quantiles by mode")
+```
+
+
 
 
 ```{r loadDataAppendix, warning=FALSE, echo=FALSE}
@@ -624,6 +679,8 @@ some_no_data_sms3<- tripsTMPS %>%
 data_for_new_model3_app <- tripsTMPS %>%
   anti_join(some_no_data_sms3, by = c("State", "Month"))
 ```
+
+
 
 ```{r pfe_app,eval=FALSE}
 
