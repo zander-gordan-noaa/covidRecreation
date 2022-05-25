@@ -569,6 +569,190 @@ changes for angler welfare and net benefits from the fishery.
 
 <div id="refs"></div>
 
+# (APPENDIX) Appendix {-}
+
+```{=latex}
+\renewcommand{\appendixname}{Appendix}
+\renewcommand{\thefigure}{A\arabic{figure}} \setcounter{figure}{0}
+\renewcommand{\thetable}{A\arabic{table}} \setcounter{table}{0}
+\renewcommand{\theequation}{A\arabic{table}} \setcounter{equation}{0}
+```
+
+# Appendix
+
+In order to assess the robustness of our results, this appendix considers in 
+further detail the data limitations of the MRIP dataset used to estimate our
+dependent variable of resident marine sportfishing trips per month. The MRIP
+program operates with a limited budget, and for this reason the number of completed
+surveys for state-months with low expected fishing activity can be quite low, which
+can create substantial uncertainty in the estimated number of fishing trips taken
+by residents in the state-month. We first characterize the extent of this uncertainty,
+and then repeat our main regression modeling with restricted estimation samples
+that exclude state-months with the most uncertainty in the estimated number of trips.
+
+
+
+```{r loadDataAppendix, warning=FALSE, echo=FALSE}
+
+some_no_data_sms<- tripsTMPS %>% 
+  filter(Mode == "7") %>% 
+  group_by(State, Month) %>% 
+  summarise(min_Trips = min(Trips), .groups = "drop") %>% 
+  filter(min_Trips == 0) %>% 
+  select(State, Month)
+
+data_for_new_model_app <- tripsTMPS %>% 
+  anti_join(some_no_data_sms, by = c("State", "Month"))
+
+some_no_data_sms5<- tripsTMPS %>%
+  filter(Mode == "5") %>%
+  group_by(State, Month) %>%
+  summarise(min_Trips = min(Trips), .groups = "drop") %>%
+  filter(min_Trips == 0) %>%
+  select(State, Month)
+
+data_for_new_model5_app <- tripsTMPS %>%
+  anti_join(some_no_data_sms5, by = c("State", "Month"))
+
+some_no_data_sms3<- tripsTMPS %>%
+  filter(Mode == "3") %>%
+  group_by(State, Month) %>%
+  summarise(min_Trips = min(Trips), .groups = "drop") %>%
+  filter(min_Trips == 0) %>%
+  select(State, Month)
+
+data_for_new_model3_app <- tripsTMPS %>%
+  anti_join(some_no_data_sms3, by = c("State", "Month"))
+```
+
+```{r pfe_app,eval=FALSE}
+
+rm_app=function(m,mn,y){
+  
+  if(m==5) {
+    bd=data_for_new_model5_app
+  } else if (m==3) {
+    bd=data_for_new_model3_app
+  }else {
+    bd=data_for_new_model_app
+  }
+  
+  d=subset(bd,Mode==m & Year %in% y)
+  
+  #Fixed effect poisson with:
+  #Cluster robust standard errors with small-sample (small number of clusters) adjustment
+  #Pustejovsky, J.E. and Tipton, E., 2018. Small-sample methods for cluster-robust
+  #variance estimation and hypothesis testing in fixed effects models. Journal of Business
+  #& Economic Statistics, 36(4), pp.672-683.
+  
+  #Baseline two-way fixed effect specification
+  r0=fepois(TripsR ~ Stringency + I(Stringency^2) | StateF + YearF^MonthF ,
+            data=d,offset = ~log(Population),
+            vcov = function(x) vcovCR(x, type = "CR2",cluster=d$StateF))   
+  
+  ses0=coef_test(r0,vcov="CR2",cluster=d$State,test = "Satterthwaite")
+  
+  r= fepois(TripsR ~ Stringency + I(Stringency^2) | StateF^MonthF + StateF[Year19s] ,
+            data=d,offset = ~log(Population),
+            vcov = function(x) vcovCR(x, type = "CR2",cluster=d$StateF)) 
+  
+  ses=coef_test(r,vcov="CR2",cluster=d$State,test = "Satterthwaite")
+  
+  #Dataset to predict trips as a function of stringency
+  #holding everything else constant.
+  #Using June 2019 in Florida: zero stringency should correspond with
+  #the predicted trips for this period in absence of stringency policies
+  #Function to calculate the predicted trips
+  #and associated confidence intervals using the 
+  #delta method
+  #The base prediction is for Wave 6 in Florida during 2019
+  pDM=function(m,pop,x) {
+    fe=fixef(m)
+    feB=fe$`StateF^MonthF`["Florida_6"] + fe$StateF["Florida"]
+    f=paste0(pop,"*exp(",feB," + ",x,"*Stringency + `I(Stringency^2)`*",x,"^2)")
+    deltaMethod(m$coefficients,f,vcov=m$cov.scaled)}
+  
+  #Population in Wave 6 in Florida during 2019
+  popE=d$Population[d$StateF=="Florida" & d$Year19s==0 & d$MonthF==6]
+  
+  p=t(sapply(0:max_actual_stringency,function(x) pDM(r,popE,x)))
+  p=as.data.frame(apply(p,2,unlist))
+  
+  pp=ggplot(p, aes(x = 0:max_actual_stringency, y = Estimate, group = 1)) + 
+    geom_line(col='black') + 
+    geom_ribbon(aes(ymin = `2.5 %`, ymax = `97.5 %`), alpha = 0.1) +
+    labs(title = mn,
+         y="Expected June 2019 Florida Trips",
+         x="Stringency") +
+    geom_hline(yintercept=p[1,"Estimate"]) +
+    scale_y_continuous(labels = scales::label_number(suffix = " M", scale = 1e-6))
+  
+  #Scaling the trip predictions to be relative to the base period
+  ps=p
+  ps[,"2.5 %"]=100*(ps[,"2.5 %"]-ps[1,"Estimate"])/ps[1,"Estimate"]
+  ps[,"97.5 %"]=100*(ps[,"97.5 %"]-ps[1,"Estimate"])/ps[1,"Estimate"]
+  ps[,"Estimate"]=100*(ps[,"Estimate"]-ps[1,"Estimate"])/ps[1,"Estimate"]
+  
+  pps=ggplot(ps, aes(x = 0:max_actual_stringency, y = Estimate, group = 1)) + 
+    geom_line(col='black') + 
+    geom_ribbon(aes(ymin = `2.5 %`, ymax = `97.5 %`), alpha = 0.1) +
+    labs(title = mn,
+         y=expression("%"  ~ Delta ~"Trips"),
+         x="Stringency") +
+    geom_hline(yintercept=0)
+  
+  #Elasticity calculations
+  pme=t(sapply(0:max_actual_stringency,FUN=function(x) 
+    deltaMethod(r$coefficients,paste0(x,"*(Stringency + `I(Stringency^2)`*2*",x,")"),vcov=r$cov.scaled)))
+  pme=as.data.frame(apply(pme,2,unlist))
+  
+  ppe=ggplot(pme, aes(x = 0:max_actual_stringency, y = Estimate, group = 1)) + 
+    geom_line(col='black') + 
+    geom_ribbon(aes(ymin = `2.5 %`, ymax = `97.5 %`), alpha = 0.1) +
+    labs(title = mn,
+         y="Trip Elasticity",
+         x="Stringency") +
+    geom_hline(yintercept=0)
+  
+  
+  return(list(reg0=r0,ses0=ses0,reg=r,ses=ses,pred=p,preds=ps,pplot=pp,pplots=pps,elast=pme,elastP=ppe))
+  
+}
+
+pm_app=rm_app(7,"Private Boats",2017:2021)
+cm_app=rm_app(5,"Charter Boats",2017:2021)
+sm_app=rm_app(3,"Shore",2017:2021)
+
+#Saving model and prediction objects because the predictions take long to run.
+saveRDS(pm_app,"pm_app.rds")
+saveRDS(cm_app,"cm_app.rds")
+saveRDS(sm_app,"sm_app.rds")
+
+```
+
+```{r regTblApp, fig.pos="h", warning=FALSE, results='asis'}
+
+#Reading model and prediction objects
+pm_app=readRDS("pm_app.rds")
+cm_app=readRDS("cm_app.rds")
+sm_app=readRDS("sm_app.rds")
+
+texreg(list(pm_app$reg,cm_app$reg,sm_app$reg),custom.model.names = c("Private","Charter","Shore"),
+       booktabs = TRUE,use.packages = FALSE,threeparttable=TRUE,
+       label="regResultsApp",caption.above = TRUE,digits=4,include.deviance=FALSE,include.bic=TRUE,include.loglik=FALSE,
+       override.pvalues=list(pm_app$ses$p_Satt,cm_app$ses$p_Satt,sm_app$ses$p_Satt),
+       caption = "Poisson Fixed Effect Regression of Trips on Covid-19 Stringency, by Mode - Restricted Estimation Sample",include.groups=FALSE,
+       custom.note = "\n\\item %stars. SEs clustered by state \n\\item with small-sample adjustment.\n")
+
+```
+
+```{r tripStringRelApp, fig.cap="Predicted Percentage Change in Trips as a Function of the Stringency Index - Restricted Estimation Sample", fig.height=8, fig.pos="h", fig.width=4, warning=FALSE}
+
+#Predicted trips as a function of stringency, including confidence intervals
+pas=ggarrange(pm_app$pplots,cm_app$pplots,sm_app$pplots,ncol = 1, nrow = 3)
+pas
+
+```
 
 <!--
 # Extra stuff

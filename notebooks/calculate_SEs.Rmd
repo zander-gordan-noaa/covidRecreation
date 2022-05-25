@@ -1,0 +1,254 @@
+---
+title: "Calculating and Checking SE's"
+output: html_notebook
+---
+
+I can load the file that David created to calculate standard errors, in addition
+to loading the normal file that we have been using to do the regression analysis.
+
+```{r}
+tripsTMPS <- readRDS("../tripsTMPS.rds")
+tripsTs <- readRDS("../tripsTs.rds")
+```
+
+```{r}
+library(tidyverse)
+```
+
+
+One snag already is that it seems the file David sent is the one in which he 
+has already removed state-months that were not sampled. Let me verify:
+
+```{r}
+tripsTs %>% 
+  count(ST, month) %>% 
+  pivot_wider(names_from = month, values_from = n)
+```
+
+Yes, it seems that is exactly what has happened: we are missing observations from
+all state-months that were not sampled, according to the chart in the MRIP
+documentation which David used to define the not sampled variable. So it should
+be true that this variable only has 1 value in the current data:
+
+```{r}
+tripsTs %>% 
+  count(notSampled)
+```
+
+Indeed.
+
+Let me double check that the values from these datasets at least line up
+properly.
+
+But first let me ensure there are no NA's in the trips from the old dataset:
+
+```{r}
+tripsTMPS %>% 
+  filter(is.na(Trips))
+```
+
+Great. Now, what is the largest difference among values which do appear in both
+datasets?
+
+```{r}
+tripsTs_forjoin <- tripsTs %>% 
+  mutate(YEAR = as.character(YEAR) %>% as.numeric(),
+         MODE_FX = as.character(MODE_FX),
+         ST = as.character(ST) %>% as.numeric(),
+         month = as.character(month))
+
+
+trips_joined <- tripsTMPS %>% 
+  left_join(tripsTs_forjoin, by = c("FIPS" = "ST", "Year" = "YEAR", 
+                                    "Mode" = "MODE_FX", "Month" = "month"))
+
+trips_joined %>% 
+  filter(Trips != one) %>% 
+  select(Year, Month, Mode, State, Trips, one) %>% 
+  mutate(trip_diff = Trips - one) %>% 
+  arrange(trip_diff)
+```
+
+The differences are all minute. But of course there are some values of NA in the
+new data. Let me check if the old data has any non-0 values there:
+
+```{r}
+trips_joined %>% 
+  filter(is.na(one), Trips > 0)
+```
+
+Nope! So, the dependent variable has the same information between these 2 datasets.
+Great. I think I can basically work with the joined dataset, dropping the "one"
+variable and focusing on the PSE's.
+
+I would also like to know if there are any state months that I am dropping
+when I use the old code for dropping 0 state months, which we are not dropping from
+this current dataset.
+
+```{r}
+no_data_sms<- tripsTMPS %>% 
+  filter(Mode == "7") %>% 
+  group_by(State, Month) %>% 
+  summarise(max_Trips = max(Trips), .groups = "drop") %>% 
+  filter(max_Trips == 0) %>% 
+  select(State, Month)
+
+no_data_sms %>% 
+  mutate(one=1) %>% 
+  pivot_wider(names_from = Month, values_from = one)
+```
+
+So the difference I can see here is that my code also removed March for Mass and
+RI. 
+
+And then what about for the charter mode:
+
+```{r}
+no_data_sms5<- tripsTMPS %>%
+  filter(Mode == "5") %>%
+  group_by(State, Month) %>%
+  summarise(max_Trips = max(Trips), .groups = "drop") %>%
+  filter(max_Trips == 0) %>%
+  select(State, Month)
+
+no_data_sms5 %>% 
+  mutate(one=1) %>% 
+  pivot_wider(names_from = Month, values_from = one) %>% 
+  relocate(`03`, .after = `02`)
+```
+
+This seems to be telling me for instance that Mass has 0 trips for charter mode in
+all years for November. Let me look at the data to see if that lines up:
+
+```{r}
+trips_joined %>% 
+  filter(Mode == "5", State == "Massachusetts", Month == "11")
+```
+
+
+Ok, so at least things line up, that there is no estimated SE here either way. 
+Is there any way to programatically confirm that? And if so, am I correct in thinking
+that this means that both datasets are essentially handling this missing data problem
+in the same way? That is, since there are no observations in the intercept data for
+Mass in November for charter mode, it means that we can not estimate the mean
+number of trips, and so it needs to be excluded from estimation whether or not
+the MRIP design intentionally doesn't sample that state month?
+
+Ok, now what about Connecticut in March and April?
+
+```{r}
+trips_joined %>% 
+  filter(Mode == "5", State == "Connecticut", Month %in% c("03", "04"))
+```
+
+There is only a single year in which Conn has data for March, which is 2018.
+In all other years, there is no data for it. I can't help but wonder
+if this means that I should be dropping those observations from the data.
+
+How about this, how many more state-months do I drop if I demand that all years
+have a minimum above 0, rather than just demanding that the maximum across all years
+be greater than 0?
+
+```{r}
+some_no_data_sms<- tripsTMPS %>% 
+  filter(Mode == "7") %>% 
+  group_by(State, Month) %>% 
+  summarise(min_Trips = min(Trips), .groups = "drop") %>% 
+  filter(min_Trips == 0) %>% 
+  select(State, Month)
+
+some_no_data_sms %>% 
+  mutate(one=1) %>% 
+  pivot_wider(names_from = Month, values_from = one)
+```
+
+Ok, so this is only a slightly more expansive list, with an extra 4 state-months.
+
+Let me look at the values obtained after filtering out all of these state-months:
+
+```{r}
+trips_joined_7_valid <- trips_joined %>% 
+  anti_join(some_no_data_sms, by = c("State", "Month")) %>% 
+  filter(Mode == "7")
+```
+
+```{r}
+trips_joined_7_valid$Trips %>% min
+```
+
+Great, so for the private mode, once I filter down like this, there are no observations
+with 0 trips. So it should also be the case that there are no NA's on the `one` variable:
+
+```{r}
+trips_joined_7_valid %>% 
+  filter(is.na(one))
+```
+
+great. And what about the standard errors, are any of these missing?
+
+```{r}
+trips_joined_7_valid %>% 
+  arrange(pse)
+```
+
+It seems that I do have just a few observations, all from delaware and Conn in 
+March, for which the PSE is showing up as 0. This presumably means that there
+is only 1 observation for them, and so SE's were not able to be calculated.
+
+
+How does all of this look for the charter mode?
+
+```{r}
+some_no_data_sms5<- tripsTMPS %>% 
+  filter(Mode == "5") %>% 
+  group_by(State, Month) %>% 
+  summarise(min_Trips = min(Trips), .groups = "drop") %>% 
+  filter(min_Trips == 0) %>% 
+  select(State, Month)
+
+some_no_data_sms5 %>% 
+  mutate(one=1) %>% 
+  pivot_wider(names_from = Month, values_from = one)
+```
+
+So in fact this condition becomes much more restrictive for the charter mode.
+Perhaps it would still be worth trying it out and seeing how it changes
+the results of the paper, and whether it might still be worth keeping it this way
+for the sake of having things a little cleaner.
+
+Let me double check that things are fine with the shore mode as well:
+
+```{r}
+trips_joined_3_valid <- trips_joined %>% 
+  anti_join(some_no_data_sms, by = c("State", "Month")) %>% 
+  filter(Mode == "3")
+
+trips_joined_3_valid$Trips %>% min
+
+trips_joined_3_valid %>% 
+  filter(is.na(one))
+
+trips_joined_3_valid %>% 
+  arrange(pse)
+```
+
+
+So actually for the shore mode I need to drop Conn in March if I am going to take this approach.
+
+It is worth adding all of this code to the paper, in an appendix. Then I can re-define
+the function for doing the regressions models to specifically handle the shore mode
+as well. And I can make sure that each mode's regression model has separate datasets.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
