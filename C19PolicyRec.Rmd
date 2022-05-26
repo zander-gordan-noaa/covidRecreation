@@ -253,7 +253,18 @@ The MRIP program oversees survey research to monitor the level of marine angling
 
 We use the FES data for the 16 states along the Gulf and Atlantic coasts in which it is available.^[Specifically, the states are: AL, CT, DE, FL, GA, ME, MD, MA, MS, NH, NJ, NY, NC, RI, SC and VA] The MRIP program publishes estimates of fishing activity for 2-month periods referred to as waves, but rather than use these estimates we use the publicly-available microdata files^[The MRIP data files are maintained by NOAA fisheries at the following URL:
 https://www.fisheries.noaa.gov/recreational-fishing-data/recreational-fishing-data-downloads] to estimate total trips in each state-month. Creating our own estimates also allows us to customize the estimates, and we choose to specifically create
-estimates of the number of trips taken by in-state residents.
+estimates of the number of trips taken by in-state residents. Considering only 
+resident fishing trips is necessary for our goal of estimating the relationship
+between trips taken and COVID stringency, because if we considered all trips, then
+for out-of-state trips the relevant independent variable would be either the stringency
+level prevailing at the trip-taker's origin, or else the difference between stringency
+at the origin versus the destination. While estimating such models would be possible in
+theory, in practice the level of detail in the MRIP data is not sufficient to calculate
+separate estimates of the number of trips taken by trip-takers from the various
+different states at the monthly level.^[With 16 states, we would need to calculate 256 trip estimates to
+handle each origin-destination pair in the sample, and that is without considering
+trips taken by anglers from states not covered by MRIP, such as anglers from Tennessee
+taking a trip in Florida.]
 
 We assemble monthly observations from 2017 through 2021 for three different modes of fishing: private boats, charter boats, and shore fishing. With `r length(unique(tripsTMPS$Year))` years, `r length(unique(tripsTMPS$Month))` months in each year and `r length(unique(tripsTMPS$State))` states, the data set for each mode could potentially have `r length(tripsTMPS$Trips[tripsTMPS$Mode==7])` observations. However, the data collection is not conducted for certain state-months for which
 there is known to be minimal fishing activity for a given mode, which are typically
@@ -302,7 +313,7 @@ tripsTMPS %>%
 ```
 
 Figure \@ref(fig:trips-seasonality-plot) displays seasonal trends
-in the level of trips across the 16 states in the dataset, for each mode of fishing. Each grey line plots
+in the level of trips across the 16 states in the dataset during 2019, for each mode of fishing. Each grey line plots
 the seasonal pattern for one state, with the monthly values for each state displayed as a fraction of the annual total. The black line provides a simple average of these relative values across
 the 16 states within each month, so that the black line represents the composite
 national-level seasonality trend in fishing trips among these 16 states. July is
@@ -401,6 +412,19 @@ model's predictions for the relative change in resident fishing trips at the
 various possible levels of COVID strignency. The solid line
 provides the point estimates for predicted percentage change in trips, while the shaded areas plot
 the 95% confidence intervals around these predictions. 
+
+In interpreting these results, one consideration is that the estimated increase in trips at
+moderate levels of policy stringency may reflect the dynamic behavior of anglers.
+That is, since the period of moderate stringency were immediately preceded by
+periods of high stringency, the increase in trips may be due to  anglers
+saving up time and money for going on trips when stringency was high, and additionally
+having an increased desire to go fishing after having been unable or unwilling to go fishing
+during the high stringency period. Our data do not provide sufficient resolution to
+explicitly model such intertemporal substitution dynamics, which would be best
+modeled at the level of individual anglers if individual-level panel data on fishing
+activity were available, but nonetheless these dynamics are a plausible explanation
+for the trend observed in the aggregate data.
+
 
 
 
@@ -556,6 +580,24 @@ games, video games, etc., which in addition to site closures is the dominating f
 side of the curve.
 
 Overall, our moderate results for the relationship between COVID policy stringency and total angler-trips taken, which show an approximately 20% increase in private boat trips taken at the levels of COVID stringency which predominated in most states by late 2020 into 2021, suggest that marine fishing activity was actually relatively stable throughout 2020, at least in comparison with socioeconomic indicators like unemployment, GDP, etc. which saw 3- or 4-sigma changes, sometimes the largest month-to-month changes since these statistics have been recorded.
+
+This paper has considered specifically the impact of state-level COVID stringency
+on in-state marine fishing trips taken by residents. Future research may also consider
+the question of cross-state substitution of fishing trips, a question which can not
+be answered sufficiently with the MRIP data we rely on in this paper. Such cross-state
+substitution may be due to anglers seeking places with lower COVID stringency to 
+vacation, or perhaps also by an increase in mobility due to the rise of remote 
+work arrangements. One data source which may be appropriate to addressing this
+question is the National Saltwater Angler Registry (NSAR), a database of all marine
+fishing license sales for states covered by the MRIP program. The NSAR database
+contains sufficient information to uniquely identify anglers, and could therefore
+be used to measure not only the rate of sales of out-of-state temporary licenses to anglers from various origin
+states, but also the rate of migration of anglers from one state to another based
+on where they have purchased in-state licenses. Such analysis would likely show an increase
+in angler migration to major destinations like Florida during COVID, but what is less
+clear is whether a general pattern of migration toward states with lower COVID stringency
+would be observed, such as from New York to New Hampshire.
+
 
 In regards to policy implications, our results may be interpreted in a few ways.
 For instance, to the extent that our results reflect the increased internal migration within the US, perhaps certain states in the Southeast will need to take account of persistent increased fishing pressure, while other states that have lost population will not. Or, to the extent that the results are driven by new participants in fishing, it will have to be seen whether these
