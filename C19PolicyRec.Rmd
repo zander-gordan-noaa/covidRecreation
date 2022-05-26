@@ -686,7 +686,7 @@ list(d4nma3, d4nma5, d4nma) %>%
                   caption = "PSE Quantiles by mode")
 ```
 
-The dataset used in the main panel does not represent a full, balanced panel of
+The dataset used in the main paper does not represent a full, balanced panel of
 the 16 states with a monthly time step from January 2017 through December 2021. This
 is because, due to the reasons explained above, some state-months (such as January
 in Maine) are removed from the dataset for all years because there is no data for
@@ -702,7 +702,7 @@ total number of observations for our estimation samples in the main paper, 785 a
 However, if a state-month has data in some but not all years, it is kept in the dataset
 and for the years without data a value of 0 trips is assigned as the estimated
 number of trips. This happens for instance with Connecticut in the month of March
-for its Charter mode data, which has completed intercept survey data in 2018, but
+for its Charter mode data, which has complete intercept survey data in 2018, but
 not in any other year. Thus, in the dataset used in the main paper, Connecticut has
 an estimated 68 trips for March 2018 in the charter mode dataset, and 0 for March
 of all other years. 
