@@ -18,6 +18,7 @@ address:
     address: 75 Virginia Beach Drive, Miami, FL, 33149
 header-includes:
    - \usepackage{threeparttable}
+   - \usepackage{flafter}
 abstract: |
   Governments responded to the Covid-19 pandemic with different policies to curtail the spread of the virus. We show how sportfishing levels are related to the stringency of Covid-19 policies. Specifically, we relate the total
   number of resident sportfishing trips taken each month in each of 16 U.S. states to a state-level index
