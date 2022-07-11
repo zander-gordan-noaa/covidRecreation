@@ -235,7 +235,7 @@ The COVID-19 pandemic and ensuing policy responses had far-reaching social and e
 
 4. A decrease in substitute leisure activities, especially indoor activities may have made angling relatively more attractive as a way to spend one's leisure time [@midway2021covid; @morales2021contrasting]
 
-The first two pathways imply a decrease in fishing effort while the latter two imply an increase. @link2021noaa documents interruptions in U.S. marine fishery data collections due to COVID-19 policies such as lockdowns. Many of these interruptions also affected anglers' access to fishing launch sites.^[Our focus is on saltwater anglers, but @paradis2021can found that around ninety percent of freshwater fishing jurisdictions in North America were able to keep fishing open during spring of 2020]. In a national survey of U.S. anglers, most respondents experienced some access restrictions, but nearly all respondents reported that they did not think that recreational fishing was unsafe during the early stages of the pandemic in 2020 @midway2021covid. The same study found that anglers reported very little change in the number of trips they took relative to the same period in years past. However, this is self-reported changes for one period in time averaged over various levels of COVID-19 policy stringencies.  Actual changes in effort over a longer period of time and range of COVID-19 policy stringencies may be different.     
+The first two pathways imply a decrease in fishing effort while the latter two imply an increase. @link2021noaa documents interruptions in U.S. marine fishery data collections due to COVID-19 policies such as lockdowns. Many of these interruptions also affected anglers' access to fishing launch sites.^[Our focus is on saltwater anglers, but @paradis2021can found that around ninety percent of freshwater fishing jurisdictions in North America were able to keep fishing open during spring of 2020]. In a national survey of U.S. anglers, most respondents experienced some access restrictions, but nearly all respondents reported that they did not think that recreational fishing was unsafe during the early stages of the pandemic in 2020 @midway2021covid. The same study found that anglers reported very little change in the number of trips they took relative to the same period in years past. However, this is self-reported changes for Spring 2020 averaged over various levels of COVID-19 policy stringencies.  Actual changes in effort over a longer period of time and range of COVID-19 policy stringencies may be different.     
 
 The net effect of the four pathways depends on prevailing conditions at the time effort is measured. For example, early in the response to the pandemic when lockdowns where common, the effect of site closures and concerns about infection risk would dominate and effort should be relatively low. At other times, however, as lockdowns are relaxed, but restrictions on indoor gatherings and leisure travel remain, effort could increase due the effects of increased leisure time and lack of substitute activities for that leisure time. A similar type of variation in trip taking behavior could happen over space, i.e. the different levels of COVID-19 policy stringency in different jurisdictions (e.g., states) could contribute to variations in angler trip taking behavior across jurisdictions.
 
@@ -286,7 +286,7 @@ We take the daily data for each state and collapse it to a state-month level dat
 
 ### Population Data
 
-In order to place the MRIP data on a comparable basis across states, we include information
+In order to place the MRIP data on a comparable per-capita basis across states, we include information
 on state populations using annual population estimates for each state in the sample. For 2017-2019, these are estimates from the American Community Survey, and for 2020 and 2021 we use figures from the Decennial Census.
 
 ### Descriptive Statistics
@@ -358,7 +358,7 @@ Figure \@ref(fig:pString) shows the evolution of COVID policy stringency over th
 course of 2020 and 2021 for each of the 16 states in our analysis. Following the initial 
 uniform jumps in stringency during the March/April 2020 lockdowns, there is 
 substantial variation between the states in how COVID policy evolved. Here we have
-highlighted 3 states showing arch-typical cases: (1) New York, which had 
+highlighted 3 states showing archetypal cases: (1) New York, which had 
 consistently stringent COVID policy, (2) Alabama, where after April COVID policy was
 loosened substantially, and stayed loose, and (3) Florida, which displays the most
 variation in COVID policy over time. The substantial independent variation in these
@@ -567,7 +567,7 @@ In this paper, we measure the net effect of COVID policy stringency on recreatio
 of angler-trips in each state-month, and on the OxCGRT dataset to measure the average
 level of COVID policy stringency in each state-month. We estimate a fixed effect 
 Poisson model to estimate this non-monotonic relationship, allowing for state-specific
-seasonality trends and time trends in the level of fishing trips.
+seasonality trends and time trends in the number of fishing trips.
 
 Our results represent a composite effect of the actual local COVID policies, as
 well as localized attitudes, risk tolerances, and beliefs about COVID-19 which
@@ -580,7 +580,7 @@ appealing compared to entirely in-home activities such as cooking, backyard
 games, video games, etc., which in addition to site closures is the dominating force on the high-stringency
 side of the curve.
 
-Overall, our moderate results for the relationship between COVID policy stringency and total angler-trips taken, which show an approximately 20% increase in private boat trips taken at the levels of COVID stringency which predominated in most states by late 2020 into 2021, suggest that marine fishing activity was actually relatively stable throughout 2020, at least in comparison with socioeconomic indicators like unemployment, GDP, etc. which saw 3- or 4-sigma changes, sometimes the largest month-to-month changes since these statistics have been recorded.
+Overall, our results for the relationship between COVID policy stringency and total angler-trips taken, which show an approximately 20% increase in private boat trips taken at the levels of COVID stringency which predominated in most states by late 2020 into 2021, suggest that marine fishing activity was actually relatively stable throughout 2020, at least in comparison with socioeconomic indicators like unemployment, GDP, etc. which saw 3- or 4-sigma changes, sometimes the largest month-to-month changes since these statistics have been recorded.
 
 This paper has considered specifically the impact of state-level COVID stringency
 on in-state marine fishing trips taken by residents. Future research may also consider
