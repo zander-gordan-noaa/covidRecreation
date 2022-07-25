@@ -1,0 +1,258 @@
+---
+title: "Create Origin-Destination dataset"
+output: html_notebook
+---
+
+I want to create a version of the data in which the trips are summarized
+not only by the state in which they occurred, but also by the state the anglers
+are from.
+
+```{r}
+library(feather)
+library(survey)
+options(survey.lonely.psu="certainty",multicore=TRUE)
+library(cdlTools)
+library(tidyverse)
+```
+
+```{r}
+#Read the trips data
+trips <- read_feather("../data/trips1721.feather")
+```
+
+```{r}
+# add state abbreviations
+trips$STa=fips(trips$ST,to="Abbreviation")
+trips$ST_RESa=fips(trips$ST_RES,to="Abbreviation")
+
+with(subset(trips,MODE_FX==5),table(STa,WAVE))
+```
+
+Here I will use the survey package to come up with the estimates of trips for
+each origin-destination pair of states. This will include standard errors for
+the estimates.
+
+```{r}
+#Add counter varible
+trips$one=1
+#Trips survey design object
+tripss=svydesign(id=~psu_id, strata=~strat_id,weights=~wp_int,data=trips,nest=TRUE)
+#Estimate total trip counts by year,month,mode, and state, including SEs
+tripsT=svyby(~one,~YEAR+month+MODE_FX+ST+ST_RES,FUN=svytotal,
+             design=subset(tripss,wp_int > 0 & month != "99" & MODE_FX != "4"),
+             drop.empty.groups=FALSE,multicore = TRUE)
+```
+
+I can also come up with the same estimates by simply taking the sum of the survey
+weights, and that way I can also get the count of how many survey records were
+included in each of those cells.
+
+
+```{r}
+tripsTM <- trips %>% 
+  filter(wp_int > 0, month != 99, MODE_FX != 4) %>% 
+  # exclude anomalous observations
+  complete(YEAR,month,MODE_FX,ST, ST_RES) %>%
+  group_by(YEAR,month,MODE_FX,ST, ST_RES) %>%
+  summarize(N_obs = n(),
+            Trips = sum(wp_int,na.rm=TRUE),
+            .groups = "drop") %>% 
+  mutate(MONTH = as.numeric(month),
+         year = as.numeric(as.character(YEAR)),
+         fips = as.numeric(as.character(ST)))
+```
+
+```{r}
+tripsTM %>% nrow()
+# get total unique combinations of origin-destination pairs
+tripsTM %>% distinct(ST, ST_RES) %>% nrow()
+# get number of combinations that have positive trips
+tripsTM %>% filter(Trips > 0) %>% distinct(ST, ST_RES) %>% nrow()
+# find combinations which have observations for every mode, month and year
+tripsTM %>% filter(Trips>0) %>% count(ST, ST_RES) %>% filter(n==180)
+```
+
+
+With 3 modes, 12 months, 5 years, 16 destination states, and 63 origin states/territories,
+there are 181,440 total possible observations in this dataset. However, of the
+1,008 unique origin-destination pairs in the data, many do not have any observations
+in the dataset for a given mode, month, and year. 216 of the pairs do not
+have observations in any mode, month, or year. Only one of the pairs has observations
+for every single one of the 180 mode-month-years, and that is Florida residents taking
+trips in Florida. The remaining origin-destination pairs will all have some amount
+of missing data. 
+
+```{r}
+tripsTM %>% filter(Trips>0) %>% nrow()
+```
+
+Of the 181,440 possible observations, only 21,824 have any survey data to inform
+the estimate of number of trips.
+
+I need to add the population data as well as stringency data for both origin
+and destination states. The population for each observation should be
+the population of the origin state.
+
+```{r}
+pop2019 <- tidycensus::get_acs(geography = "state", 
+            variables = "B01001_001", 
+            year = 2019,
+            survey = "acs1") 
+```
+
+
+
+```{r}
+pop2019 <- pop2019 %>% 
+  mutate(fips = as.numeric(GEOID))
+
+tripsTMP <- tripsTM %>% 
+  left_join(pop2019, by = c("ST_RES"="fips")) %>% 
+  rename(population = estimate) %>% 
+  select(-c(GEOID, moe, NAME, variable))
+```
+
+
+The population for the origin state is now added. How many states actually have
+population data?
+
+```{r}
+tripsTMP %>% distinct(ST_RES) %>% nrow()
+tripsTMP %>% filter(!is.na(population)) %>% distinct(ST_RES) %>% nrow()
+```
+
+52, as it should be.
+
+```{r}
+fips_codes_state <- tidycensus::fips_codes %>% select(state_code, state_name) %>% distinct()
+
+stringency <- read_csv("../data/OxCGRT_US_latest.csv") %>% 
+  rename(State = RegionName) %>% 
+  mutate(Year = as.integer((substr(Date, start = 1, stop = 4))),
+         Month = substr(Date, start = 5, stop = 6),
+         Day = substr(Date, start = 7, stop = 8)) %>% 
+  # next 2 commands assign the last known value of Stringency for days with NA
+  arrange(State, Year, Month, Day) %>% 
+  fill(StringencyIndex) %>% 
+  group_by(State, Year, Month) %>%
+  summarise(Stringency = mean(StringencyIndex),
+            .groups = "drop") %>% 
+  left_join(fips_codes_state, by = c("State" = "state_name")) %>% 
+  rename(fips = state_code) %>% 
+  mutate(fips = as.integer(fips))
+```
+
+
+```{r}
+tripsTMPS_od <- tripsTMP %>% 
+  left_join(stringency, by = c("year" = "Year", "month" = "Month", "ST" = "fips")) %>% 
+  rename(state_destination = State, stringency_destination = Stringency) %>% 
+  left_join(stringency, by = c("year" = "Year", "month" = "Month", "ST_RES" = "fips")) %>% 
+  rename(state_origin = State, stringency_origin = Stringency) %>% 
+  select(-c(state_destination, state_origin)) %>% 
+  filter(!is.na(population))
+```
+
+Now I have the data I need, and I have filtered down to only the 52 origin states
+of the main US, I could ultimately probably trim even further but this is good
+for now. 
+
+Are there any missing values of stringency?
+
+```{r}
+tripsTMPS_od %>% filter(year>=2020, is.na(stringency_destination)) %>% nrow()
+tripsTMPS_od %>% filter(year>=2020, is.na(stringency_origin)) %>% nrow()
+```
+
+There are missing values for both Puerto Rico and DC, I can remove these:
+
+```{r}
+tripsTMPS_od <- tripsTMPS_od %>% 
+  filter(!ST_RES %in% c(11, 72))
+```
+
+
+```{r}
+tripsTMPS_od %>% filter(year>=2020, is.na(stringency_origin)) %>% nrow()
+```
+
+
+And now I have no missing values for stringency in 2020 and later, and I can impute
+stringency equal to zero for earlier years:
+
+```{r}
+tripsTMPS_od <- tripsTMPS_od %>% 
+  mutate(stringency_destination = if_else(is.na(stringency_destination), 0, stringency_destination),
+         stringency_origin = if_else(is.na(stringency_origin), 0, stringency_origin))
+```
+
+I should now be able to fit a model:
+
+```{r}
+library(fixest)
+```
+
+```{r}
+trips_pois <- fepois(Trips ~ stringency_origin + stringency_destination | ST^ST_RES, tripsTMPS_od)
+print(trips_pois)
+```
+
+
+Here I am using all of the observations, many of which are 0 only because of missing
+data, let me restrict to those with positive trips and see how the results look.
+
+```{r}
+
+trips_pois2 <- fepois(Trips ~ stringency_origin + stringency_destination | ST^ST_RES, 
+                      data = tripsTMPS_od %>% filter(Trips>0))
+print(trips_pois2)
+```
+
+
+Here the signs of the coefficients are in the expected directions, but are not
+estimated very precisely. I can add the offset to provide some more structure:
+
+```{r}
+trips_pois3 <- fepois(Trips ~ stringency_origin + stringency_destination | ST^ST_RES, 
+                      data = tripsTMPS_od %>% filter(Trips>0),
+                      offset = ~log(population))
+print(trips_pois3)
+```
+
+This actually does not affect the results at all.
+
+How many observations are there with more than 0 trips:
+
+```{r}
+tripsTMPS_od %>% filter(Trips>0) %>% nrow()
+```
+
+how many observations are there for each fixed effect?
+
+```{r}
+tripsTMPS_od %>% filter(Trips>0) %>% 
+  count(ST, ST_RES) %>% 
+  arrange(n)
+```
+
+of 730 unique combinations of origin and destination states, there are 87 which
+have only a single observations, which should therefore be dropped. Let me see if
+results are changed when specifying a different way of dropping observations:
+
+```{r}
+trips_pois4 <- fepois(Trips ~ stringency_origin + stringency_destination | ST^ST_RES, 
+                      data = tripsTMPS_od %>% filter(Trips>0),
+                      offset = ~log(population),
+                      fixef.rm = "both")
+print(trips_pois4)
+```
+
+This does affect the number of observations, but has no impact on the precision of
+the estimates.
+
+It will be good to save my dataset for future use:
+
+```{r}
+saveRDS(tripsTMPS_od, "../tripsTMPS_od.rds")
+```
+
