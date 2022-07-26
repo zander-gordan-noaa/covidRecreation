@@ -255,21 +255,15 @@ The MRIP program oversees survey research to monitor the level of marine angling
 
 
 We use the MRIP data for the 16 states along the Gulf and Atlantic coasts in which it is available.^[Specifically, the states are: AL, CT, DE, FL, GA, ME, MD, MA, MS, NH, NJ, NY, NC, RI, SC and VA] The MRIP program publishes estimates of fishing activity for 2-month periods referred to as waves, but rather than use these estimates we use the publicly-available microdata files^[The MRIP data files are maintained by NOAA fisheries at the following URL:
-https://www.fisheries.noaa.gov/recreational-fishing-data/recreational-fishing-data-downloads] to estimate total trips in each state-month. These microdata are anonymized versions of the completed APAIS data and are thus trip-level data, and they are augmented with survey weights derived from the FES data that allow for the construction of estimates data that are representative of all trips covered by the MRIP program. The primary unit of measurement for our aggregated summary of the MRIP data is the angler-trip (hereafter abbreviated simply to trip), representing the total number of distinct trips multiplied by the average party size of those trips.
+https://www.fisheries.noaa.gov/recreational-fishing-data/recreational-fishing-data-downloads] to estimate total trips in each state-month. These microdata are anonymized versions of the completed APAIS data and are thus trip-level data, and they are augmented with survey weights derived from the FES data that allow for the construction of estimates that are representative of all trips covered by the MRIP program. The primary unit of measurement for our aggregated summary of the MRIP data is the angler-trip (hereafter abbreviated simply to trip), representing the total number of distinct trips multiplied by the average party size of those trips.
 
 Creating our own estimates also allows us to customize the estimates, and we choose to specifically create
 estimates of the number of trips taken by in-state residents. Considering only 
-resident fishing trips is necessary for our goal of estimating the relationship
-between trips taken and COVID stringency, because if we considered all trips, then
-for out-of-state trips the relevant independent variable would be either the stringency
-level prevailing at the trip-taker's origin, or else the difference between stringency
-at the origin versus the destination. While estimating such models would be possible in
-theory, in practice the level of detail in the MRIP data is not sufficient to calculate
-separate estimates of the number of trips taken by trip-takers from the various
-different states at the monthly level.^[With 16 states, we would need to calculate 256 trip estimates to
-handle each origin-destination pair in the sample, and that is without considering
-trips taken by anglers from states not covered by MRIP, such as anglers from Tennessee
-taking a trip in Florida.]
+resident fishing trips is a simple way to achieve our goal of estimating the relationship
+between trips taken and COVID stringency. In the appendix, we also consider trips taken
+across state lines, where
+for out-of-state trips the relevant independent variables include the stringency
+level prevailing at the trip-taker's origin as well as at the destination.
 
 We assemble monthly observations from 2017 through 2021 for three different modes of fishing: private boats, charter boats, and shore fishing. With `r length(unique(tripsTMPS$Year))` years, `r length(unique(tripsTMPS$Month))` months in each year and `r length(unique(tripsTMPS$State))` states, the data set for each mode could potentially have `r length(tripsTMPS$Trips[tripsTMPS$Mode==7])` observations. However, the data collection is not conducted for certain state-months for which
 there is known to be minimal fishing activity for a given mode, which are typically
@@ -906,6 +900,90 @@ pas=ggarrange(pm_app$pplots,cm_app$pplots,sm_app$pplots,ncol = 1, nrow = 3)
 pas
 
 ```
+
+In order to assess COVID-induced movement of fishing activity across state lines, we 
+also include here a set of results that explicitly consider the number of trips
+taken by residents of a particular state visiting another state. Since the MRIP
+data includes information on the state of residency for anglers intercepted by
+the APAIS, we can construct estimates of the number of trips taken by anglers
+from a particular state to a particular state in each month. Notably, although
+there are only 16 destination states covered by the MRIP program, the number of potential
+origin states includes all 50 states, so for instance we can estimate the number of
+trips taken by Tennessee residents to North Carolina or Florida. There are thus
+potentially 800 origin-destination pairs, which when multiplied by 5 years and
+12 months yields potentially 48,000 observations in the dataset for these estimations.
+However, most of the origin-destination pairs are missing data for some months
+due to the limited surveying done by MRIP. Thus, the actual number of observations
+with positive estimated trips which can be included in regression analysis is closer
+to 7,000.
+
+In modeling the impact of COVID stringency on these cross-state trips, we can consider
+both the impact of origin and destination state stringency. Theoretically, we should
+anticipate that higher COVID stringency in the origin state will mean that people
+have less opportunities for recreation locally, and will be more inclined to visit
+other states for fishing trips, and thus trips will be increasing in origin state
+stringency. Conversely, we should anticipate that higher stringency in the destination
+state will lead to fewer trips to that state. Specifically, we can model the number
+of trips from origin state $i$ to destination state $j$ as:
+
+$$\mu_{ijmy} = W_{i}*\exp(\beta_{origin} S_{imy} + \beta_{destination} S_{jmy} + \alpha_{ij}).$$
+
+Where $\mu_{ijmy}$ is the expected number of trips for origin-destination pair
+$i,j$, $W_i$ is the population of origin state $i$, $S$ is the the COVID stringency
+prevailing in the origin and destination states respectively, and $\alpha_{ij}$
+is a fixed effect for the origin-destination pair. 
+
+```{=latex}
+
+\begin{table}
+\label{od_reg}
+\caption{Origin-Destination Regressions}
+\centering
+\begin{tabular}{lccc}
+   \tabularnewline \midrule \midrule
+   Dependent Variable: & \multicolumn{3}{c}{Trips}\\
+   Model:                   & Private    & Charter     & Shore\\  
+   \midrule
+   \emph{Variables}\\
+   Stringency (Origin)       & 0.0007       & 0.0055$^{**}$ & 0.0006\\   
+                            & (0.0042)     & (0.0026)      & (0.0030)\\   
+   Stringency (Destination)  & -0.0004      & -0.0041       & 0.0001\\   
+                            & (0.0042)     & (0.0030)      & (0.0030)\\   
+   \midrule
+   \emph{Fixed-effects}\\
+   O-D pair               & Yes          & Yes           & Yes\\  
+   \midrule
+   \emph{Fit statistics}\\
+   Observations             & 6,710        & 7,234         & 7,177\\  
+   Pseudo R$^2$             & 0.93630      & 0.67207       & 0.89658\\  
+   \midrule \midrule
+   \multicolumn{4}{l}{\emph{Clustered (O-D pair) standard-errors in parentheses}}\\
+   \multicolumn{4}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\
+\end{tabular}
+\par
+\end{table}
+```
+
+We can estimate poisson fixed effect regression models of this form separately
+for each of the 3 modes of fishing, as in the main paper. The results are presented
+in Table A3. The findings are in line with the hypothesis discussed
+above, with the most precise results obtaining for the charter mode, which is sensible
+as charter trips are most likely to be taken by those visiting from out of state.
+Quantitatively speaking, the coefficients of 0.0055 and -0.0041 for the impact of
+origin and destination state stringency respectively, can be interpreted by considering
+a given change in COVID stringency. For instance, New York substantially decreased its
+stringency in Spring of 2021 (as shown in Table \@ref(fig:pString)), from about 65 
+points to about 40 points, about a 25 
+point change. The results suggest charter trips taken by New York residents to other
+states would have decreased by around 14% as a result of this decrease in stringency.
+Florida experienced a similar drop in stringency at that time, and the results would
+suggest that charter trips to Florida from other states would have increased by
+10% as a result of that change.
+
+
+
+
+
 
 <!--
 # Extra stuff

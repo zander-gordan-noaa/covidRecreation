@@ -1,0 +1,94 @@
+---
+title: "Origin-Destination Regressions"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(fixest)
+```
+
+Loading the data:
+
+```{r}
+tripsTMPS_od <- readRDS("../tripsTMPS_od.rds")
+```
+
+Conducting regressions first for the private mode:
+
+```{r}
+pmd <- tripsTMPS_od %>% 
+  filter(MODE_FX == "7", Trips > 0)
+```
+
+Conducting regressions on this dataset:
+
+```{r}
+pm_pois <- fepois(Trips ~ stringency_origin + stringency_destination | ST^ST_RES, 
+                      data = pmd,
+                      offset = ~log(population))
+print(pm_pois)
+```
+
+How about charter mode:
+
+```{r}
+cmd <- tripsTMPS_od %>% 
+  filter(MODE_FX == "5", Trips > 0)
+
+cm_pois <- fepois(Trips ~ stringency_origin + stringency_destination | ST^ST_RES, 
+                      data = cmd,
+                      offset = ~log(population))
+print(cm_pois)
+```
+
+
+And shore mode:
+
+```{r}
+smd <- tripsTMPS_od %>% 
+  filter(MODE_FX == "3", Trips > 0)
+
+sm_pois <- fepois(Trips ~ stringency_origin + stringency_destination | ST^ST_RES, 
+                      data = smd,
+                      offset = ~log(population))
+print(sm_pois)
+```
+
+These results should be good enough to work with for my current purposes,
+now I just need to get the results into tables that I can put in the paper.
+
+```{r}
+etable(cm_pois)
+```
+
+
+```{r}
+etable(pm_pois, cm_pois, sm_pois)
+```
+
+
+```{r}
+etable(pm_pois, cm_pois, sm_pois, tex = TRUE)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
