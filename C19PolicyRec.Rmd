@@ -13,9 +13,9 @@ author:
     affiliation: NOAA Fisheries Southeast Fisheries Science Center
 address:
   - code: ECS
-    address: 2750 Prosperity Ave STE 600, Fairfax, VA 22031
+    address: ECS, 2750 Prosperity Ave STE 600, Fairfax, VA 22031
   - code: NOAA Fisheries Southeast Fisheries Science Center
-    address: 75 Virginia Beach Drive, Miami, FL, 33149
+    address: NOAA Southeast Fisheries Science Center, 75 Virginia Beach Drive, Miami, FL, 33149
 header-includes:
    - \usepackage{threeparttable}
    - \usepackage{flafter}
@@ -235,7 +235,7 @@ The COVID-19 pandemic and ensuing policy responses had far-reaching social and e
 
 4. A decrease in substitute leisure activities, especially indoor activities may have made angling relatively more attractive as a way to spend one's leisure time [@midway2021covid; @morales2021contrasting]
 
-The first two pathways imply a decrease in fishing effort while the latter two imply an increase. @link2021noaa documents interruptions in U.S. marine fishery data collections due to COVID-19 policies such as lockdowns. Many of these interruptions also affected anglers' access to fishing launch sites.^[Our focus is on saltwater anglers, but @paradis2021can found that around ninety percent of freshwater fishing jurisdictions in North America were able to keep fishing open during spring of 2020]. In a national survey of U.S. anglers, most respondents experienced some access restrictions, but nearly all respondents reported that they did not think that recreational fishing was unsafe during the early stages of the pandemic in 2020 @midway2021covid. The same study found that anglers reported very little change in the number of trips they took relative to the same period in years past. However, this is self-reported changes for Spring 2020 averaged over various levels of COVID-19 policy stringencies.  Actual changes in effort over a longer period of time and range of COVID-19 policy stringencies may be different.     
+The first two pathways imply a decrease in fishing effort while the latter two imply an increase. @link2021noaa documents interruptions in U.S. marine fishery data collections due to COVID-19 policies such as lockdowns. Many of these interruptions also affected anglers' access to fishing launch sites. Our focus is on saltwater anglers, but @paradis2021can found that around ninety percent of freshwater fishing jurisdictions in North America were able to keep fishing open during spring of 2020. In a national survey of U.S. anglers, most respondents experienced some access restrictions, but nearly all respondents reported that they did not think that recreational fishing was unsafe during the early stages of the pandemic in 2020 @midway2021covid. The same study found that anglers reported very little change in the number of trips they took relative to the same period in years past. However, this is self-reported changes for Spring 2020 averaged over various levels of COVID-19 policy stringencies.  Actual changes in effort over a longer period of time and range of COVID-19 policy stringencies may be different.     
 
 The net effect of the four pathways depends on prevailing conditions at the time effort is measured. For example, early in the response to the pandemic when lockdowns where common, the effect of site closures and concerns about infection risk would dominate and effort should be relatively low. At other times, however, as lockdowns are relaxed, but restrictions on indoor gatherings and leisure travel remain, effort could increase due the effects of increased leisure time and lack of substitute activities for that leisure time. A similar type of variation in trip taking behavior could happen over space, i.e. the different levels of COVID-19 policy stringency in different jurisdictions (e.g., states) could contribute to variations in angler trip taking behavior across jurisdictions.
 
@@ -254,8 +254,7 @@ The MRIP program oversees survey research to monitor the level of marine angling
 
 
 
-We use the MRIP data for the 16 states along the Gulf and Atlantic coasts in which it is available.^[Specifically, the states are: AL, CT, DE, FL, GA, ME, MD, MA, MS, NH, NJ, NY, NC, RI, SC and VA] The MRIP program publishes estimates of fishing activity for 2-month periods referred to as waves, but rather than use these estimates we use the publicly-available microdata files^[The MRIP data files are maintained by NOAA fisheries at the following URL:
-https://www.fisheries.noaa.gov/recreational-fishing-data/recreational-fishing-data-downloads] to estimate total trips in each state-month. These microdata are anonymized versions of the completed APAIS data and are thus trip-level data, and they are augmented with survey weights derived from the FES data that allow for the construction of estimates that are representative of all trips covered by the MRIP program. The primary unit of measurement for our aggregated summary of the MRIP data is the angler-trip (hereafter abbreviated simply to trip), representing the total number of distinct trips multiplied by the average party size of those trips.
+We use the MRIP data for the 16 states along the Gulf and Atlantic coasts in which it is available. Specifically, the states are: AL, CT, DE, FL, GA, ME, MD, MA, MS, NH, NJ, NY, NC, RI, SC and VA. The MRIP program publishes estimates of fishing activity for 2-month periods referred to as waves, but rather than use these estimates we use the publicly-available microdata files to estimate total trips in each state-month. These microdata are anonymized versions of the completed APAIS data and are thus trip-level data, and they are augmented with survey weights derived from the FES data that allow for the construction of estimates that are representative of all trips covered by the MRIP program. The primary unit of measurement for our aggregated summary of the MRIP data is the angler-trip (hereafter abbreviated simply to trip), representing the total number of distinct trips multiplied by the average party size of those trips.
 
 Creating our own estimates also allows us to customize the estimates, and we choose to specifically create
 estimates of the number of trips taken by in-state residents. Considering only 
@@ -267,7 +266,7 @@ level prevailing at the trip-taker's origin as well as at the destination.
 
 We assemble monthly observations from 2017 through 2021 for three different modes of fishing: private boats, charter boats, and shore fishing. With `r length(unique(tripsTMPS$Year))` years, `r length(unique(tripsTMPS$Month))` months in each year and `r length(unique(tripsTMPS$State))` states, the data set for each mode could potentially have `r length(tripsTMPS$Trips[tripsTMPS$Mode==7])` observations. However, the data collection is not conducted for certain state-months for which
 there is known to be minimal fishing activity for a given mode, which are typically
-the winter months in colder states.^[The [MRIP Data User Handbook](https://media.fisheries.noaa.gov/2021-09/MRIP%20Data%20User%20Handbook%20Updated%202021-09-30.pdf) explains this in Table 1: many states are not sampled during January and February, and Maine for instance is not sampled in March or April either. In the [MRIP Survey Design Manual](https://media.fisheries.noaa.gov/2021-09/MRIP-Survey-Design-and-Statistical-Methods-2021-09-15.pdf), Figure 6 shows the state-month's which do not have coverage in white, along with detail of the 2020 data quality for state-months which are covered. Since these observations are non-randomly missing, there is no reason to estimate a hurdle or 2-stage model, and we simply drop these state-months from our estimation samples.] The only states for which data is 
+the winter months in colder states. The only states for which data is 
 collected in all months for all modes are Florida, Alabama, and North Carolina. There are a total of 35 state-months for
 which no data is collected for the private boat and shore modes, so data for these 
 modes includes only 785 observations, and 50 state-months
@@ -559,7 +558,7 @@ pas
 ```
 
 
-## Conclusion
+# Conclusion
 
 In this paper, we measure the net effect of COVID policy stringency on recreational marine fishing effort, among 16 states in the eastern U.S. To do so, we rely on data from the FES to measure the total number
 of angler-trips in each state-month, and on the OxCGRT dataset to measure the average
@@ -610,375 +609,6 @@ changes for angler welfare and net benefits from the fishery.
 
 <div id="refs"></div>
 
-# (APPENDIX) Appendix {-}
-
-```{=latex}
-\renewcommand{\appendixname}{Appendix}
-\renewcommand{\thefigure}{A\arabic{figure}} \setcounter{figure}{0}
-\renewcommand{\thetable}{A\arabic{table}} \setcounter{table}{0}
-\renewcommand{\theequation}{A\arabic{table}} \setcounter{equation}{0}
-```
-
-# Appendix
-
-In order to assess the robustness of our results, this appendix considers in 
-further detail the data limitations of the MRIP dataset used to estimate our
-dependent variable of resident marine sportfishing trips per month. The MRIP
-program operates with a limited budget, and for this reason the number of completed
-surveys for state-months with low expected fishing activity can be quite low, which
-can create substantial uncertainty in the estimated number of fishing trips taken
-by residents in the state-month. We first characterize the extent of this uncertainty,
-and then repeat our main regression modeling with restricted estimation samples
-that exclude state-months with the most uncertainty in the estimated number of trips.
-
-```{r PSEtable}
-# load data with PSE's
-tripsTs <- readRDS("tripsTs.rds")
-# join to original dataset
-tripsTs_forjoin <- tripsTs %>% 
-  mutate(YEAR = as.character(YEAR) %>% as.numeric(),
-         MODE_FX = as.character(MODE_FX),
-         ST = as.character(ST) %>% as.numeric(),
-         month = as.character(month))
-trips_joined <- tripsTMPS %>% 
-  left_join(tripsTs_forjoin, by = c("FIPS" = "ST", "Year" = "YEAR", 
-                                    "Mode" = "MODE_FX", "Month" = "month"))
-# edit "0" PSE's for tabulation
-trips_joined_for_table <- trips_joined %>% 
-  mutate(pse = case_when(pse == 0 ~ 100,
-                         TRUE ~ pse))
-# create datasets that will be used for estimation
-snds<- tripsTMPS %>% 
-  filter(Mode == "7") %>% 
-  group_by(State, Month) %>% 
-  summarise(min_Trips = min(Trips), .groups = "drop") %>% 
-  filter(min_Trips == 0) %>% 
-  select(State, Month)
-d4nma <- trips_joined_for_table %>% 
-  anti_join(snds, by = c("State", "Month")) %>% 
-  filter(Mode == 7)
-snds5<- tripsTMPS %>%
-  filter(Mode == "5") %>%
-  group_by(State, Month) %>%
-  summarise(min_Trips = min(Trips), .groups = "drop") %>%
-  filter(min_Trips == 0) %>%
-  select(State, Month)
-d4nma5 <- trips_joined_for_table %>%
-  anti_join(snds5, by = c("State", "Month")) %>% 
-  filter(Mode == 5)
-snds3<- tripsTMPS %>%
-  filter(Mode == "3") %>%
-  group_by(State, Month) %>%
-  summarise(min_Trips = min(Trips), .groups = "drop") %>%
-  filter(min_Trips == 0) %>%
-  select(State, Month)
-d4nma3 <- trips_joined_for_table %>%
-  anti_join(snds3, by = c("State", "Month")) %>%
-  filter(Mode == 3)
-# create table with PSE quantiles by dataset
-list(d4nma3, d4nma5, d4nma) %>% 
-  map_dfc(function(x) x %>% summarize(PSE = quantile(pse, seq(0.1, 1, 0.1)))) %>% 
-  rename(Shore = PSE...1, Charter = PSE...2, Private = PSE...3) %>% 
-  mutate(Quantile = scales::percent(seq(0.1, 1, 0.1))) %>% 
-  relocate(Quantile, .before = Shore) %>% 
-  kableExtra::kbl(booktabs = T,
-                  caption = "PSE Quantiles by mode")
-```
-
-The dataset used in the main paper does not represent a full, balanced panel of
-the 16 states with a monthly time step from January 2017 through December 2021. This
-is because, due to the reasons explained above, some state-months (such as January
-in Maine) are removed from the dataset for all years because there is no data for
-these months. The key question is to what extent it is therefore appropriate to
-treat the estimated number of trips as being 0. In the main text of the paper, if
-a state-month has no data in every year, the state-month is removed from the dataset.
-This results in a total of 35 state-months being removed for the Shore and Private
-mode datasets, and 45 state-months being removed for the Charter dataset. Subtracting
-these amounts from the total 192 state-months and multiplying by 5 years gives the
-total number of observations for our estimation samples in the main paper, 785 and
-735 respectively for Private/Shore and Charter.
-
-However, if a state-month has data in some but not all years, it is kept in the dataset
-and for the years without data a value of 0 trips is assigned as the estimated
-number of trips. This happens for instance with Connecticut in the month of March
-for its Charter mode data, which has complete intercept survey data in 2018, but
-not in any other year. Thus, in the dataset used in the main paper, Connecticut has
-an estimated 68 trips for March 2018 in the charter mode dataset, and 0 for March
-of all other years. 
-
-In this appendix, we define an alternative dataset with a more
-restrictive criterion for inclusion of these problematic state-months with limited
-data. In the restricted estimation sample, if a state-month is missing data for
-any year, it is removed from the estimation sample. Note that this means that all
-observations with missing data are removed from the estimation sample, and no
-imputation is done in this sample. This results in only a slightly higher
-number of state-months being removed for the Private and Shore modes, with a final
-estimation sample size of 765 for Private and 770 for Shore. For Charter mode, the
-restriction is more severe, and the restricted estimation sample contains only
-600 observations.
-
-As an additional check on the validity of the estimated number of trips which
-forms the dependent variable for the study, Table \@ref(tab:PSEtable) shows the 
-distribution of the Percent Standard Errors of the estimated number of trips
-in each of the 3 restricted estimation samples, by showing the deciles of the 
-distributions. We can see that for Shore and Private modes, the vast majority of 
-observations have PSE's less than 50%, while for Charter mode there are a large
-minority of such problematic observations. The noise in the charter mode observations
-may thus explain why statistically significant results are not obtained in either
-the main paper results or the supplementary regression results presented in this
-appendix. It is important to remember however, that the regression coefficient
-variances are estimated using a cluster-robust estimation method which adjusts
-for the heteroskedasticity induced by this sampling variance in the dependent
-variable.
-
-
-```{r loadDataAppendix, warning=FALSE, echo=FALSE}
-
-some_no_data_sms<- tripsTMPS %>% 
-  filter(Mode == "7") %>% 
-  group_by(State, Month) %>% 
-  summarise(min_Trips = min(Trips), .groups = "drop") %>% 
-  filter(min_Trips == 0) %>% 
-  select(State, Month)
-
-data_for_new_model_app <- tripsTMPS %>% 
-  anti_join(some_no_data_sms, by = c("State", "Month"))
-
-some_no_data_sms5<- tripsTMPS %>%
-  filter(Mode == "5") %>%
-  group_by(State, Month) %>%
-  summarise(min_Trips = min(Trips), .groups = "drop") %>%
-  filter(min_Trips == 0) %>%
-  select(State, Month)
-
-data_for_new_model5_app <- tripsTMPS %>%
-  anti_join(some_no_data_sms5, by = c("State", "Month"))
-
-some_no_data_sms3<- tripsTMPS %>%
-  filter(Mode == "3") %>%
-  group_by(State, Month) %>%
-  summarise(min_Trips = min(Trips), .groups = "drop") %>%
-  filter(min_Trips == 0) %>%
-  select(State, Month)
-
-data_for_new_model3_app <- tripsTMPS %>%
-  anti_join(some_no_data_sms3, by = c("State", "Month"))
-```
-
-
-
-```{r pfe_app,eval=FALSE}
-
-rm_app=function(m,mn,y){
-  
-  if(m==5) {
-    bd=data_for_new_model5_app
-  } else if (m==3) {
-    bd=data_for_new_model3_app
-  }else {
-    bd=data_for_new_model_app
-  }
-  
-  d=subset(bd,Mode==m & Year %in% y)
-  
-  #Fixed effect poisson with:
-  #Cluster robust standard errors with small-sample (small number of clusters) adjustment
-  #Pustejovsky, J.E. and Tipton, E., 2018. Small-sample methods for cluster-robust
-  #variance estimation and hypothesis testing in fixed effects models. Journal of Business
-  #& Economic Statistics, 36(4), pp.672-683.
-  
-  #Baseline two-way fixed effect specification
-  r0=fepois(TripsR ~ Stringency + I(Stringency^2) | StateF + YearF^MonthF ,
-            data=d,offset = ~log(Population),
-            vcov = function(x) vcovCR(x, type = "CR2",cluster=d$StateF))   
-  
-  ses0=coef_test(r0,vcov="CR2",cluster=d$State,test = "Satterthwaite")
-  
-  r= fepois(TripsR ~ Stringency + I(Stringency^2) | StateF^MonthF + StateF[Year19s] ,
-            data=d,offset = ~log(Population),
-            vcov = function(x) vcovCR(x, type = "CR2",cluster=d$StateF)) 
-  
-  ses=coef_test(r,vcov="CR2",cluster=d$State,test = "Satterthwaite")
-  
-  #Dataset to predict trips as a function of stringency
-  #holding everything else constant.
-  #Using June 2019 in Florida: zero stringency should correspond with
-  #the predicted trips for this period in absence of stringency policies
-  #Function to calculate the predicted trips
-  #and associated confidence intervals using the 
-  #delta method
-  #The base prediction is for Wave 6 in Florida during 2019
-  pDM=function(m,pop,x) {
-    fe=fixef(m)
-    feB=fe$`StateF^MonthF`["Florida_6"] + fe$StateF["Florida"]
-    f=paste0(pop,"*exp(",feB," + ",x,"*Stringency + `I(Stringency^2)`*",x,"^2)")
-    deltaMethod(m$coefficients,f,vcov=m$cov.scaled)}
-  
-  #Population in Wave 6 in Florida during 2019
-  popE=d$Population[d$StateF=="Florida" & d$Year19s==0 & d$MonthF==6]
-  
-  p=t(sapply(0:max_actual_stringency,function(x) pDM(r,popE,x)))
-  p=as.data.frame(apply(p,2,unlist))
-  
-  pp=ggplot(p, aes(x = 0:max_actual_stringency, y = Estimate, group = 1)) + 
-    geom_line(col='black') + 
-    geom_ribbon(aes(ymin = `2.5 %`, ymax = `97.5 %`), alpha = 0.1) +
-    labs(title = mn,
-         y="Expected June 2019 Florida Trips",
-         x="Stringency") +
-    geom_hline(yintercept=p[1,"Estimate"]) +
-    scale_y_continuous(labels = scales::label_number(suffix = " M", scale = 1e-6))
-  
-  #Scaling the trip predictions to be relative to the base period
-  ps=p
-  ps[,"2.5 %"]=100*(ps[,"2.5 %"]-ps[1,"Estimate"])/ps[1,"Estimate"]
-  ps[,"97.5 %"]=100*(ps[,"97.5 %"]-ps[1,"Estimate"])/ps[1,"Estimate"]
-  ps[,"Estimate"]=100*(ps[,"Estimate"]-ps[1,"Estimate"])/ps[1,"Estimate"]
-  
-  pps=ggplot(ps, aes(x = 0:max_actual_stringency, y = Estimate, group = 1)) + 
-    geom_line(col='black') + 
-    geom_ribbon(aes(ymin = `2.5 %`, ymax = `97.5 %`), alpha = 0.1) +
-    labs(title = mn,
-         y=expression("%"  ~ Delta ~"Trips"),
-         x="Stringency") +
-    geom_hline(yintercept=0)
-  
-  #Elasticity calculations
-  pme=t(sapply(0:max_actual_stringency,FUN=function(x) 
-    deltaMethod(r$coefficients,paste0(x,"*(Stringency + `I(Stringency^2)`*2*",x,")"),vcov=r$cov.scaled)))
-  pme=as.data.frame(apply(pme,2,unlist))
-  
-  ppe=ggplot(pme, aes(x = 0:max_actual_stringency, y = Estimate, group = 1)) + 
-    geom_line(col='black') + 
-    geom_ribbon(aes(ymin = `2.5 %`, ymax = `97.5 %`), alpha = 0.1) +
-    labs(title = mn,
-         y="Trip Elasticity",
-         x="Stringency") +
-    geom_hline(yintercept=0)
-  
-  
-  return(list(reg0=r0,ses0=ses0,reg=r,ses=ses,pred=p,preds=ps,pplot=pp,pplots=pps,elast=pme,elastP=ppe))
-  
-}
-
-pm_app=rm_app(7,"Private Boats",2017:2021)
-cm_app=rm_app(5,"Charter Boats",2017:2021)
-sm_app=rm_app(3,"Shore",2017:2021)
-
-#Saving model and prediction objects because the predictions take long to run.
-saveRDS(pm_app,"pm_app.rds")
-saveRDS(cm_app,"cm_app.rds")
-saveRDS(sm_app,"sm_app.rds")
-
-```
-
-Table \@ref(regResultsApp) and Figure \@ref(fig:tripStringRelApp) present the
-results of the Poisson fexed effects regression model estimated on the restricted
-estimation sample. The results are largely identical to those reported in the main
-paper.
-
-```{r regTblApp, fig.pos="h", warning=FALSE, results='asis'}
-
-#Reading model and prediction objects
-pm_app=readRDS("pm_app.rds")
-cm_app=readRDS("cm_app.rds")
-sm_app=readRDS("sm_app.rds")
-
-texreg(list(pm_app$reg,cm_app$reg,sm_app$reg),custom.model.names = c("Private","Charter","Shore"),
-       booktabs = TRUE,use.packages = FALSE,threeparttable=TRUE,
-       label="regResultsApp",caption.above = TRUE,digits=4,include.deviance=FALSE,include.bic=TRUE,include.loglik=FALSE,
-       override.pvalues=list(pm_app$ses$p_Satt,cm_app$ses$p_Satt,sm_app$ses$p_Satt),
-       caption = "Poisson Fixed Effect Regression of Trips on Covid-19 Stringency, by Mode - Restricted Estimation Sample",include.groups=FALSE,
-       custom.note = "\n\\item %stars. SEs clustered by state \n\\item with small-sample adjustment.\n")
-
-```
-
-```{r tripStringRelApp, fig.cap="Predicted Percentage Change in Trips as a Function of the Stringency Index - Restricted Estimation Sample", fig.height=8, fig.pos="h", fig.width=4, warning=FALSE}
-
-#Predicted trips as a function of stringency, including confidence intervals
-pas=ggarrange(pm_app$pplots,cm_app$pplots,sm_app$pplots,ncol = 1, nrow = 3)
-pas
-
-```
-
-In order to assess COVID-induced movement of fishing activity across state lines, we 
-also include here a set of results that explicitly consider the number of trips
-taken by residents of a particular state visiting another state. Since the MRIP
-data includes information on the state of residency for anglers intercepted by
-the APAIS, we can construct estimates of the number of trips taken by anglers
-from a particular state to a particular state in each month. Notably, although
-there are only 16 destination states covered by the MRIP program, the number of potential
-origin states includes all 50 states, so for instance we can estimate the number of
-trips taken by Tennessee residents to North Carolina or Florida. There are thus
-potentially 800 origin-destination pairs, which when multiplied by 5 years and
-12 months yields potentially 48,000 observations in the dataset for these estimations.
-However, most of the origin-destination pairs are missing data for some months
-due to the limited surveying done by MRIP. Thus, the actual number of observations
-with positive estimated trips which can be included in regression analysis is closer
-to 7,000.
-
-In modeling the impact of COVID stringency on these cross-state trips, we can consider
-both the impact of origin and destination state stringency. Theoretically, we should
-anticipate that higher COVID stringency in the origin state will mean that people
-have less opportunities for recreation locally, and will be more inclined to visit
-other states for fishing trips, and thus trips will be increasing in origin state
-stringency. Conversely, we should anticipate that higher stringency in the destination
-state will lead to fewer trips to that state. Specifically, we can model the number
-of trips from origin state $i$ to destination state $j$ as:
-
-$$\mu_{ijmy} = W_{i}*\exp(\beta_{origin} S_{imy} + \beta_{destination} S_{jmy} + \alpha_{ij}).$$
-
-Where $\mu_{ijmy}$ is the expected number of trips for origin-destination pair
-$i,j$, $W_i$ is the population of origin state $i$, $S$ is the the COVID stringency
-prevailing in the origin and destination states respectively, and $\alpha_{ij}$
-is a fixed effect for the origin-destination pair. 
-
-```{=latex}
-
-\begin{table}
-\label{od_reg}
-\caption{Origin-Destination Regressions}
-\centering
-\begin{tabular}{lccc}
-   \tabularnewline \midrule \midrule
-   Dependent Variable: & \multicolumn{3}{c}{Trips}\\
-   Model:                   & Private    & Charter     & Shore\\  
-   \midrule
-   \emph{Variables}\\
-   Stringency (Origin)       & 0.0007       & 0.0055$^{**}$ & 0.0006\\   
-                            & (0.0042)     & (0.0026)      & (0.0030)\\   
-   Stringency (Destination)  & -0.0004      & -0.0041       & 0.0001\\   
-                            & (0.0042)     & (0.0030)      & (0.0030)\\   
-   \midrule
-   \emph{Fixed-effects}\\
-   O-D pair               & Yes          & Yes           & Yes\\  
-   \midrule
-   \emph{Fit statistics}\\
-   Observations             & 6,710        & 7,234         & 7,177\\  
-   Pseudo R$^2$             & 0.93630      & 0.67207       & 0.89658\\  
-   \midrule \midrule
-   \multicolumn{4}{l}{\emph{Clustered (O-D pair) standard-errors in parentheses}}\\
-   \multicolumn{4}{l}{\emph{Signif. Codes: ***: 0.01, **: 0.05, *: 0.1}}\\
-\end{tabular}
-\par
-\end{table}
-```
-
-We can estimate poisson fixed effect regression models of this form separately
-for each of the 3 modes of fishing, as in the main paper. The results are presented
-in Table A3. The findings are in line with the hypothesis discussed
-above, with the most precise results obtaining for the charter mode, which is sensible
-as charter trips are most likely to be taken by those visiting from out of state.
-Quantitatively speaking, the coefficients of 0.0055 and -0.0041 for the impact of
-origin and destination state stringency respectively, can be interpreted by considering
-a given change in COVID stringency. For instance, New York substantially decreased its
-stringency in Spring of 2021 (as shown in Table \@ref(fig:pString)), from about 65 
-points to about 40 points, about a 25 
-point change. The results suggest charter trips taken by New York residents to other
-states would have decreased by around 14% as a result of this decrease in stringency.
-Florida experienced a similar drop in stringency at that time, and the results would
-suggest that charter trips to Florida from other states would have increased by
-10% as a result of that change.
 
 
 
