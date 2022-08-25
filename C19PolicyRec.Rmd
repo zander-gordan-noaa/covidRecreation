@@ -289,7 +289,7 @@ on state populations using annual population estimates for each state in the sam
 ### Descriptive Statistics
 
 
-```{r trips-seasonality-plot,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State, relative to annual total. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the total annual trips for the state. The bold line gives a simple average of these relative monthly values across the 16 states."}
+```{r trips-seasonality-plot,fig.height=6,fig.width=5,fig.align='center', fig.cap="2019 Monthly Marine Sportfishing Trips by State, relative to annual total. The seasonal profile of each state is plotted as a separate grey line, with each month's value expressed as a percentage of the total annual trips for the state. The bold line gives a simple average of these relative monthly values across the 16 states.",include=FALSE}
 mode_names <- c(
   `7` = "Private Trips",                  
   `5` = "Charter Trips",
@@ -310,7 +310,7 @@ tripsTMPS %>%
   facet_wrap(vars(Mode), scales = "free", nrow = 3, labeller = as_labeller(mode_names))
 ```
 
-Figure \@ref(fig:trips-seasonality-plot) displays seasonal trends
+Figure 1 displays seasonal trends
 in the level of trips across the 16 states in the dataset during 2019, for each mode of fishing. Each grey line plots
 the seasonal pattern for one state, with the monthly values for each state displayed as a fraction of the annual total. The black line provides a simple average of these relative values across
 the 16 states within each month, so that the black line represents the composite
@@ -320,7 +320,7 @@ trend, for all 3 modes of fishing. There are many state-months in which 0 trips 
 particular for the private mode there are only 4 states with positive trips in January: Florida, North Carolina, Alabama, and
 Mississippi. 
 
-We can see from Figure \@ref(fig:trips-seasonality-plot) that fishing activity for the private
+We can see from Figure 1 that fishing activity for the private
 mode is in most states fairly broadly distributed from April through November, with 
 only 10 state-months accounting for more than 20% of the 
 annual trips in a state, and a maximum of 35% for Maine in June. All but 1 of the 10
@@ -331,7 +331,7 @@ to private mode, we can see that the charter mode has substantially more concent
 in the Summer, reflecting the fact that those fishing with their own equipment are
 more likely to get use out of that equipment throughout the year, and vice versa.
 
-```{r pString,fig.cap="Monthly 2020 stringency Index by State",fig.height=6,fig.width=5,fig.align='center'}
+```{r pString,fig.cap="Monthly 2020 stringency Index by State",fig.height=6,fig.width=5,fig.align='center', include=FALSE}
 covid_colors <- c("NY" = "black", "FL" = "black", "AL" = "black", "other" = "grey")
 covid_alpha <- c("NY" = 1, "FL" = 1, "AL" = 1, "other" = 0.5)
 covid_linetype <- c("NY" = "dashed", "FL" = "dotted", "AL" = "dotdash", "other" = "solid")
@@ -351,7 +351,7 @@ tripsTMPS %>%
   scale_linetype_manual(values = covid_linetype)
 ```
 
-Figure \@ref(fig:pString) shows the evolution of COVID policy stringency over the
+Figure 2 shows the evolution of COVID policy stringency over the
 course of 2020 and 2021 for each of the 16 states in our analysis. Following the initial 
 uniform jumps in stringency during the March/April 2020 lockdowns, there is 
 substantial variation between the states in how COVID policy evolved. Here we have
@@ -404,7 +404,7 @@ the coefficients for the charter mode are significant only at the 10% level. The
 coefficient is significant only for the private mode, though it has a negative sign
 in all 3 independent models.
 
-Figure \@ref(fig:tripStringRel)
+Figure 3
 represents these same relationships graphically, by plotting the estimated
 model's predictions for the relative change in resident fishing trips at the
 various possible levels of COVID stringnency. The solid line
@@ -549,7 +549,7 @@ texreg(list(pm$reg,cm$reg,sm$reg),custom.model.names = c("Private","Charter","Sh
 ```
 
 
-```{r tripStringRel,fig.cap="Predicted Percentage Change in Trips as a Function of the Stringency Index",fig.height=8,fig.width=4}
+```{r tripStringRel,fig.cap="Predicted Percentage Change in Trips as a Function of the Stringency Index",fig.height=8,fig.width=4, include=FALSE}
 
 #Predicted trips as a function of stringency, including confidence intervals
 pas=ggarrange(pm$pplots,cm$pplots,sm$pplots,ncol = 1, nrow = 3)
