@@ -1,0 +1,75 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Here I will re-do the Origin-Destination regressions, including squared terms
+in the regressions:
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+library(fixest)
+```
+
+
+```{r}
+tripsTMPS_od <- readRDS("../tripsTMPS_od.rds")
+```
+
+Regressions for private mode:
+
+```{r}
+pmd <- tripsTMPS_od %>% 
+  filter(MODE_FX == "7", Trips > 0)
+
+pm_pois <- fepois(Trips ~ stringency_origin + stringency_destination + 
+                    I(stringency_origin^2) + I(stringency_destination^2) | ST^ST_RES, 
+                      data = pmd,
+                      offset = ~log(population))
+print(pm_pois)
+```
+
+```{r}
+cmd <- tripsTMPS_od %>% 
+  filter(MODE_FX == "5", Trips > 0)
+
+cm_pois <- fepois(Trips ~ stringency_origin + stringency_destination + 
+                    I(stringency_origin^2) + I(stringency_destination^2) | ST^ST_RES, 
+                      data = cmd,
+                      offset = ~log(population))
+print(cm_pois)
+```
+
+
+```{r}
+smd <- tripsTMPS_od %>% 
+  filter(MODE_FX == "3", Trips > 0)
+
+sm_pois <- fepois(Trips ~ stringency_origin + stringency_destination + 
+                    I(stringency_origin^2) + I(stringency_destination^2) | ST^ST_RES, 
+                      data = smd,
+                      offset = ~log(population))
+print(sm_pois)
+```
+
+
+```{r}
+etable(pm_pois, cm_pois, sm_pois)
+```
+
+
+```{r}
+etable(pm_pois, cm_pois, sm_pois, tex = TRUE)
+```
+
+
+
+
+
+
+
+
+
