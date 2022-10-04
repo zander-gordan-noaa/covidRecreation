@@ -273,6 +273,15 @@ which no data is collected for the private boat and shore modes, so data for the
 modes includes only 785 observations, and 50 state-months
 have no data collection for the charter mode, leading to 735 observations. 
 
+The MRIP data collection process was partially impacted by COVID conditions, however,
+the main data that we rely on was able to continue unhindered. Specifically, the 
+FES mail survey was able to continue, which is what is necessary for the estimation
+of effort (trips) in each state-month. The APAIS however was impacted by COVID in that
+many access points were closed and the survey was unable to be conducted during March
+and April of 2020. If it were not for this fact, it would be possible to investigate
+other outcomes such as the mean hours fished on a trip, the average distance traveled
+to the fishing site, or other attributes of trips which come from the APAIS data.
+
 
 ### COVID Stringency Index
 
@@ -411,6 +420,12 @@ model's predictions for the relative change in resident fishing trips at the
 various possible levels of COVID stringnency. The solid line
 provides the point estimates for predicted percentage change in trips, while the shaded areas plot
 the 95% confidence intervals around these predictions. 
+
+It is important to note that these results for the impact of COVID stringency on
+fishing trips represent a composite effect of factors correlated with COVID stringency.
+For instance, to the degree that traffic lessened in proportion to stringency, the
+travel cost to visit fishing sites was reduced and therefore our results are partially
+driven by that change.
 
 In interpreting these results, one consideration is that the estimated increase in trips at
 moderate levels of policy stringency may reflect the dynamic behavior of anglers.
@@ -596,6 +611,16 @@ on where they have purchased in-state licenses. Such analysis would likely show 
 in angler migration to major destinations like Florida during COVID, but what is less
 clear is whether a general pattern of migration toward states with lower COVID stringency
 would be observed, such as from New York to New Hampshire.
+
+In future research, it may be possible to assess the impact of COVID on fishing activity
+in different ways. For instance, one data source that could be utilized is foot
+traffic data based on cellphone GPS tracking. In this way it would be possible to 
+measure the level of activity near the coastline on a much finer spatial and temporal scale
+than is possible with the survey data we rely on in this paper. It would be a challenge
+to distinguish between activities such as beach going and other uses of the coastline 
+versus fishing-specific activity with this data source, and additionally it would
+likely not be possible to assess boat-based activity, however the advantages
+in terms of data resolution may still make it an attractive option.
 
 
 In regards to policy implications, our results may be interpreted in a few ways.
