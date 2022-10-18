@@ -1,0 +1,76 @@
+---
+title: "Changes in MRIP Survey Weights 2019 to 2020"
+output: html_notebook
+---
+
+Here I will examine whether the pattern of MRIP survey weights changed substantially from 2019 
+to 2020, to assuage concerns about the impact of COVID on the data collection.
+
+```{r}
+library(feather)
+library(tidyverse)
+```
+
+```{r}
+#Read the trips data
+trips <- read_feather("../data/trips1721.feather")
+```
+
+The survey weight variable is `wp_int`. I want to create separate histograms
+by year for this variable:
+
+```{r}
+trips %>% 
+  filter(YEAR == 2019, wp_int < 20000) %>% 
+  ggplot(aes(x=wp_int)) + 
+  geom_histogram()
+```
+
+```{r}
+trips %>% 
+  filter(YEAR == 2020, wp_int < 20000) %>% 
+  ggplot(aes(x=wp_int)) + 
+  geom_histogram()
+```
+
+
+```{r}
+trips %>% 
+  filter(YEAR == 2018, wp_int < 20000) %>% 
+  ggplot(aes(x=wp_int)) + 
+  geom_histogram()
+```
+
+
+These look fairly similar to me, but perhaps I could also look at the log of the
+survey weight variable to see the differences more clearly:
+
+```{r}
+trips %>% 
+  mutate(log_survey_weight = log(wp_int)) %>% 
+  filter(YEAR==2019) %>% 
+  ggplot(aes(x=log_survey_weight)) +
+  geom_histogram() + xlab("log survey weights")
+```
+
+
+```{r}
+trips %>% 
+  mutate(log_survey_weight = log(wp_int)) %>% 
+  filter(YEAR==2020) %>% 
+  ggplot(aes(x=log_survey_weight)) +
+  geom_histogram() + xlab("log survey weights")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
