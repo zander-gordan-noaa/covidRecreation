@@ -331,7 +331,7 @@ account for unmodelled correlation between the number of trips taken in
 different periods within a state, as may be the case for instance if
 unfavorable weather in a given month causes some trips to be postponed
 to the following month. Furthermore, we adjust the clustered variance estimates
-to avoid the downward bias can can occur when the number of clusters is small. Specifically, our variance estimates are calculated
+to avoid the downward bias that can can occur when the number of clusters is small. Specifically, our variance estimates are calculated
 using a bias-reduced linearization method proposed by \citet{bell2002bias}. We estimate the Poisson regression model using the
 \texttt{fixest} package in \texttt{R} \citep{berge2018Efficient}, and variance
 estimation is conducted through the \texttt{clubSandwich} package in
@@ -364,7 +364,7 @@ For the private mode, we can see that the "break even" point in Figure \ref{fig:
 
 \section{Conclusion}
 
-In this paper, we measure the net effect of COVID policy stringency on
+In this paper, we measure the relationship between COVID policy stringency and
 recreational marine fishing effort, among 16 states in the U.S. east coast and Gulf of Mexico.
 To do so, we rely on data from the MRIP to measure the total number of
 angler-trips in each state-month, and on the OxCGRT dataset to measure
@@ -373,9 +373,7 @@ use a fixed effect Poisson model to estimate the
 relationship between COVID policy stringency and total angler-trips taken, allowing for state-specific seasonality trends and time
 trends in the number of fishing trips.
 
-%We find an inverse-U relationship...
-
-We see the inverse-U relationship as the outcome of
+We find that the aggregate number of marine fishing trips increases at a decreasing rate with COVID policy stringency and suggest that this inverse-U relationship is the outcome of
 countervailing forces: (1) stringency reduces available substitutes of
 indoor or high-density outdoor activities, increasing the attractiveness
 of fishing, which is the dominant force on the low-stringency side of
@@ -385,12 +383,12 @@ activities such as cooking, backyard games, video games, etc., which in
 addition to site closures is the dominating force on the high-stringency
 side of the curve.
 
-Furthermore, there was an approximately
+Overall, there was an approximately
 20\% increase in private boat trips taken at the levels of COVID
 stringency which predominated in most states by late 2020 into 2021,
 suggesting that marine fishing activity was fairly stable
 during this period, relative to socioeconomic indicators
-like unemployment, GDP, etc. which saw large fluctuations \citep{vavra2021Tracking}. %Add reference.
+like unemployment, GDP, etc. which saw large fluctuations \citep{vavra2021Tracking}. 
 
 It is important to note that these results for the impact of COVID
 stringency on fishing trips represent a composite effect of factors
